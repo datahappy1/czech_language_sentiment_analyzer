@@ -1,1 +1,1 @@
-# czech_language_sentiment_analyserer
+# czech_language_sentiment_analyser
