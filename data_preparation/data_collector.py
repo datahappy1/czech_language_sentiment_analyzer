@@ -1,15 +1,13 @@
 import threading
 import requests
 import queue
-import os
 from bs4 import BeautifulSoup
 from random import randint
 from time import sleep
-from torrequest import TorRequest
 
-
+scraper_temp_output = []
+scraper_final_output = []
 movie_review_urls = []
-scraper_output = []
 
 czech_stopwords = ['a', 'u', 'v', 'aby', 's', 'o', 'jak', 'to', 'ale', 'za', 've', 'i', ',',
                    'ja', 'ke', 'co', 'je', 'z', 'sa', 'na', 'ze', 'ač', 'že', 'či', 'který',
@@ -191,23 +189,14 @@ czech_adjectives = ['absolutní', 'adept', 'agilní', 'agonizující', 'agresivn
                     'žádný', 'žalostné', 'žalostný', 'žalostný', 'žalostný', 'žárlivý', 'že', 'že', 'ženatý', 'ženský',
                     'ženský', 'unavený', 'živý', 'živý', 'žíznivý', 'žlutá', 'žoviální']
 
-q = queue.Queue()
-
+q = queue.Queue(maxsize=0)
+num_threads = 10
 
 class Anonymize:
     def __init__(self):
         self.headers = [{'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'},
                         {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5 (.NET CLR 3.5.30729)'},
                         {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MyAppName/1.0.0 (someone@example.com)'}]
-        self.tor_pwd = os.environ.get('tor_pwd') #your_unhashed_password here
-
-    def tor_reset_identity(self):
-        """
-
-        :return:
-        """
-        tr = TorRequest(password=self.tor_pwd)
-        tr.reset_identity()
 
     def randomize_request_headers(self):
         """
@@ -232,7 +221,7 @@ def movie_review_url_collector():
     """
     start_page_urls = ['https://www.csfd.cz/zebricky/nejhorsi-filmy/?show=complete',
                        'https://www.csfd.cz/zebricky/nejlepsi-filmy/?show=complete']
-    #'https://www.csfd.cz/filmoteky/strana-2/?film=&user=&ok=Zobrazit&_form_=collection'
+
     obj = Anonymize()
     for start_page in start_page_urls:
         page = requests.get(start_page, headers=Anonymize.randomize_request_headers(obj))
@@ -247,68 +236,61 @@ def movie_review_url_collector():
     return 0
 
 
-def movie_review_scraper(url):
+def movie_review_scraper(q):
     """
 
     :param url:
     :return:
     """
-    obj = Anonymize()
-    page = requests.get(url, headers=Anonymize.randomize_request_headers(obj))
-    soup = BeautifulSoup(page.content, 'html.parser')
-    rankings = soup.find_all('img', attrs={'class': 'rating'})
-    ratings = soup.find_all('p', attrs={'class': 'post'})
-    for rank, rate in zip(rankings, ratings):
-        if '"odpad!"' in str(rank):
-            scraper_output.append({'rank': -3, 'words': ((str(rate)[17:])[:-47]).split()})
-        elif '"*"' in str(rank):
-            scraper_output.append({'rank': -2, 'words': ((str(rate)[17:])[:-47]).split()})
-        elif '"**"' in str(rank):
-            scraper_output.append({'rank': -1, 'words': ((str(rate)[17:])[:-47]).split()})
-        elif '"***"' in str(rank):
-            scraper_output.append({'rank': 1, 'words': ((str(rate)[17:])[:-47]).split()})
-        elif '"****"' in str(rank):
-            scraper_output.append({'rank': 2, 'words': ((str(rate)[17:])[:-47]).split()})
-        elif '"*****"' in str(rank):
-            scraper_output.append({'rank': 3, 'words': ((str(rate)[17:])[:-47]).split()})
+    while True:
+        url = q.get()
+        obj = Anonymize()
+        page = requests.get(url, headers=Anonymize.randomize_request_headers(obj))
+        soup = BeautifulSoup(page.content, 'html.parser')
+        rankings = soup.find_all('img', attrs={'class': 'rating'})
+        ratings = soup.find_all('p', attrs={'class': 'post'})
 
-        for o in scraper_output:
-            for word in str(o.get('words')).lower():
-                if word in czech_adjectives and word not in czech_stopwords:
-                    print(word, o.get('rank'))
+        for rank, rate in zip(rankings, ratings):
+            if '"odpad!"' in str(rank):
+                scraper_temp_output.append({'rank': -3, 'words': ((str(rate)[17:])[:-47]).split()})
+            elif '"*"' in str(rank):
+                scraper_temp_output.append({'rank': -2, 'words': ((str(rate)[17:])[:-47]).split()})
+            elif '"**"' in str(rank):
+                scraper_temp_output.append({'rank': -1, 'words': ((str(rate)[17:])[:-47]).split()})
+            elif '"***"' in str(rank):
+                scraper_temp_output.append({'rank': 1, 'words': ((str(rate)[17:])[:-47]).split()})
+            elif '"****"' in str(rank):
+                scraper_temp_output.append({'rank': 2, 'words': ((str(rate)[17:])[:-47]).split()})
+            elif '"*****"' in str(rank):
+                scraper_temp_output.append({'rank': 3, 'words': ((str(rate)[17:])[:-47]).split()})
 
-    return 0
-
-
-def data_processor():
-    #1 read the /temp output file written by scraper
-    #2 deduplicate
-    #3 mean/median/modus calculation
-    pass
+            for o in scraper_temp_output:
+                for i_word in o.get('words'):
+                    word = str(i_word).lower().replace('.','')
+                    rank = str(o.get('rank'))
+                    if word in czech_adjectives and word not in czech_stopwords:
+                        scraper_final_output.append(word + ' ' + rank + '\n')
+        q.task_done()
 
 
 if __name__ == "__main__":
+
     movie_review_url_collector()
+    # print(q.qsize())
 
-    # threads = 3   # Number of threads to create
-    # Create a list of jobs and then iterate through
-    # the number of threads appending each thread to
-    # the job list
-    jobs = []
-    # for url in urls:
+    for i in range(num_threads):
+        Anonymize.sleeper()
 
-    while not q.empty():
-        url = q.get()
-        print(url)
-        thread = threading.Thread(target=movie_review_scraper(url))
-        jobs.append(thread)
+        # print(threading.active_count())
+        # print(scraper_final_output)
 
-    # Start the threads (i.e. calculate the random number lists)
-    for j in jobs:
-        j.start()
+        worker = threading.Thread(target=movie_review_scraper, args=(q,))
+        worker.setDaemon(True)
+        worker.start()
 
-    # Ensure all of the threads have finished
-    for j in jobs:
-        j.join()
+    q.join()
 
-    print("List processing complete.")
+    with open('./data_temp/temp_file.txt', 'w', encoding='utf8') as fw:
+        fw.writelines(scraper_output)
+
+    print("Movie review data processing complete.")

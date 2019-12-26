@@ -1,3 +1,2 @@
-torrequest
 requests
 bs4
