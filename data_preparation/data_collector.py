@@ -269,7 +269,7 @@ def movie_review_scraper(q):
                     word = str(i_word).lower().replace('.','')
                     rank = str(o.get('rank'))
                     if word in czech_adjectives and word not in czech_stopwords:
-                        scraper_final_output.append(word + ' ' + rank + '\n')
+                        scraper_final_output.append(word + ' ' + rank)
         q.task_done()
 
 
@@ -291,6 +291,7 @@ if __name__ == "__main__":
     q.join()
 
     with open('./data_temp/temp_file.txt', 'w', encoding='utf8') as fw:
-        fw.writelines(scraper_output)
+        for line in scraper_final_output:
+            fw.write(line)
 
     print("Movie review data processing complete.")
