@@ -1,5 +1,7 @@
+import datetime
 import threading
 import requests
+import urllib3
 import queue
 from bs4 import BeautifulSoup
 from random import randint
@@ -23,7 +25,7 @@ czech_stopwords = ['a', 'u', 'v', 'aby', 's', 'o', 'jak', 'to', 'ale', 'za', 've
                    'jsem', 'tento', 'clanku', 'clanky', 'aby', 'jsme', 'pred', 'pta', 'jejich',
                    'byl', 'jeste', 'az', 'bez', 'take', 'pouze', 'prvni', 'vase', 'ktera', 'nas',
                    'novy', 'tipy', 'pokud', 'muze', 'design', 'strana', 'jeho', 'sve', 'jine',
-                   'zpravy', 'nove', 'neni\t', 'vas', 'jen', 'podle', 'zde', 'clanek', 'uz', 'email',
+                   'zpravy', 'nove', 'neni', 'vas', 'jen', 'podle', 'zde', 'clanek', 'uz', 'email',
                    'byt', 'vice', 'bude', 'jiz', 'nez', 'ktery', 'by', 'ktere', 'co', 'nebo', 'ten',
                    'tak', 'ma', 'pri', 'od', 'po', 'jsou', 'jak', 'dalsi', 'ale', 'si', 've', 'to',
                    'jako', 'za', 'zpet', 'ze', 'do', 'pro', 'je', 'na']
@@ -190,7 +192,8 @@ czech_adjectives = ['absolutní', 'adept', 'agilní', 'agonizující', 'agresivn
                     'ženský', 'unavený', 'živý', 'živý', 'žíznivý', 'žlutá', 'žoviální']
 
 q = queue.Queue(maxsize=0)
-num_threads = 10
+num_threads = 50
+
 
 class Anonymize:
     def __init__(self):
@@ -200,15 +203,15 @@ class Anonymize:
 
     def randomize_request_headers(self):
         """
-
+        randomize request headers function used for each request
         :return:
         """
-        return self.headers[randint(0,2)]
+        return self.headers[randint(0,len(self.headers)-1)]
 
     @staticmethod
     def sleeper():
         """
-
+        basic sleeper function used to sleep between requests
         :return:
         """
         sleep(randint(2, 10))
@@ -216,8 +219,9 @@ class Anonymize:
 
 def movie_review_url_collector():
     """
-
-    :return:
+    function putting to the queue urls with the movie reviews
+    based on the best 300 and the worst 300 movies in the movie review database
+    :return:0
     """
     start_page_urls = ['https://www.csfd.cz/zebricky/nejhorsi-filmy/?show=complete',
                        'https://www.csfd.cz/zebricky/nejlepsi-filmy/?show=complete']
@@ -238,14 +242,21 @@ def movie_review_url_collector():
 
 def movie_review_scraper(q):
     """
-
-    :param url:
-    :return:
+    function getting the url from the queue, requesting the raw html
+    and scraping the movie review html code
+    :param q: queue
+    :return:None
     """
     while True:
         url = q.get()
         obj = Anonymize()
-        page = requests.get(url, headers=Anonymize.randomize_request_headers(obj))
+
+        try:
+            page = requests.get(url, headers=Anonymize.randomize_request_headers(obj))
+        except urllib3.exceptions.ConnectionError:
+            q.task_done()
+            return
+
         soup = BeautifulSoup(page.content, 'html.parser')
         rankings = soup.find_all('img', attrs={'class': 'rating'})
         ratings = soup.find_all('p', attrs={'class': 'post'})
@@ -270,28 +281,29 @@ def movie_review_scraper(q):
                     rank = str(o.get('rank'))
                     if word in czech_adjectives and word not in czech_stopwords:
                         scraper_final_output.append(word + ' ' + rank)
+
         q.task_done()
+        return
 
 
 if __name__ == "__main__":
-
+    # fill the queue with the urls used for movie data scraping
     movie_review_url_collector()
-    # print(q.qsize())
 
+    # process queue items with multi-threaded scraper function movie_review_scraper
     for i in range(num_threads):
         Anonymize.sleeper()
 
-        # print(threading.active_count())
-        # print(scraper_final_output)
-
         worker = threading.Thread(target=movie_review_scraper, args=(q,))
         worker.setDaemon(True)
+        print(f"{datetime.datetime.now()} Worker thread {threading.get_ident()} started")
         worker.start()
 
     q.join()
 
+    # write to temp_file.txt the scraped movie review data
     with open('./data_temp/temp_file.txt', 'w', encoding='utf8') as fw:
-        for line in scraper_final_output:
-            fw.write(line)
+        for item in scraper_final_output:
+            fw.write(item)
 
     print("Movie review data processing complete.")
