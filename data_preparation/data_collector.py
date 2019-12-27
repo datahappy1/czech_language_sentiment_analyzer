@@ -1,8 +1,7 @@
 import datetime
-import threading
 import requests
 import urllib3
-import queue
+import concurrent.futures
 from bs4 import BeautifulSoup
 from random import randint
 from time import sleep
@@ -191,9 +190,6 @@ czech_adjectives = ['absolutní', 'adept', 'agilní', 'agonizující', 'agresivn
                     'žádný', 'žalostné', 'žalostný', 'žalostný', 'žalostný', 'žárlivý', 'že', 'že', 'ženatý', 'ženský',
                     'ženský', 'unavený', 'živý', 'živý', 'žíznivý', 'žlutá', 'žoviální']
 
-q = queue.Queue(maxsize=0)
-num_threads = 50
-
 
 class Anonymize:
     def __init__(self):
@@ -201,20 +197,21 @@ class Anonymize:
                         {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.5) Gecko/20091102 Firefox/3.5.5 (.NET CLR 3.5.30729)'},
                         {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) MyAppName/1.0.0 (someone@example.com)'}]
 
-    def randomize_request_headers(self):
-        """
-        randomize request headers function used for each request
-        :return:
-        """
-        return self.headers[randint(0,len(self.headers)-1)]
-
     @staticmethod
     def sleeper():
         """
         basic sleeper function used to sleep between requests
         :return:
         """
-        sleep(randint(2, 10))
+        sleep(randint(1, 5))
+
+    def sleep_and_randomize_request_headers(self):
+        """
+        call sleeper and randomize request headers function used for each request
+        :return:
+        """
+        Anonymize.sleeper()
+        return self.headers[randint(0,len(self.headers)-1)]
 
 
 def movie_review_url_collector():
@@ -228,7 +225,7 @@ def movie_review_url_collector():
 
     obj = Anonymize()
     for start_page in start_page_urls:
-        page = requests.get(start_page, headers=Anonymize.randomize_request_headers(obj))
+        page = requests.get(start_page, headers=Anonymize.sleep_and_randomize_request_headers(obj))
         soup = BeautifulSoup(page.content, 'html.parser')
         url = soup.find_all('td', attrs={'class': 'film'})
         for url_item in url:
@@ -236,27 +233,23 @@ def movie_review_url_collector():
             movie_name = str(children).split("/")[2]
             for random_index in ([2,3,4,5,6,7,8,9,10]):
                 review_page = str(random_index)
-                q.put('https://www.csfd.cz/film/{}/komentare/strana-{}'.format(movie_name,review_page))
+                movie_review_urls.append('https://www.csfd.cz/film/{}/komentare/strana-{}'.
+                                         format(movie_name,review_page))
     return 0
 
 
-def movie_review_scraper(q):
+def movie_review_scraper(url):
     """
-    function getting the url from the queue, requesting the raw html
+    function getting the url from the argument, requesting the raw html
     and scraping the movie review html code
-    :param q: queue
+    :param url: url
     :return:None
     """
-    while True:
-        url = q.get()
-        obj = Anonymize()
+    obj = Anonymize()
 
-        try:
-            page = requests.get(url, headers=Anonymize.randomize_request_headers(obj))
-        except urllib3.exceptions.ConnectionError:
-            q.task_done()
-            return
-
+    print(f'{datetime.datetime.now()} started scraping {url}')
+    try:
+        page = requests.get(url, headers=Anonymize.sleep_and_randomize_request_headers(obj))
         soup = BeautifulSoup(page.content, 'html.parser')
         rankings = soup.find_all('img', attrs={'class': 'rating'})
         ratings = soup.find_all('p', attrs={'class': 'post'})
@@ -282,28 +275,33 @@ def movie_review_scraper(q):
                     if word in czech_adjectives and word not in czech_stopwords:
                         scraper_final_output.append(word + ' ' + rank)
 
-        q.task_done()
-        return
+    except urllib3.exceptions.ConnectionError as CE:
+        print(str(CE))
 
+    except Exception as E:
+        print(str(E))
+
+    print(f'{datetime.datetime.now()} finished scraping {url}')
 
 if __name__ == "__main__":
-    # fill the queue with the urls used for movie data scraping
+    # fill the list with urls used for movie data scraping
     movie_review_url_collector()
+    movie_review_urls = movie_review_urls[:3]
+    print(movie_review_urls)
 
-    # process queue items with multi-threaded scraper function movie_review_scraper
-    for i in range(num_threads):
-        Anonymize.sleeper()
-
-        worker = threading.Thread(target=movie_review_scraper, args=(q,))
-        worker.setDaemon(True)
-        print(f"{datetime.datetime.now()} Worker thread {threading.get_ident()} started")
-        worker.start()
-
-    q.join()
+    # process the list items in a multi-threaded pool based scraper function movie_review_scraper
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        future_to_url = {executor.submit(movie_review_scraper, url): url for url in movie_review_urls}
+        for future in concurrent.futures.as_completed(future_to_url):
+            url = future_to_url[future]
+            try:
+                data = future.result()
+            except Exception as exc:
+                print('%r generated an exception: %s' % (url, exc))
 
     # write to temp_file.txt the scraped movie review data
     with open('./data_temp/temp_file.txt', 'w', encoding='utf8') as fw:
         for item in scraper_final_output:
-            fw.write(item)
+            fw.write(item + '\n')
 
     print("Movie review data processing complete.")
