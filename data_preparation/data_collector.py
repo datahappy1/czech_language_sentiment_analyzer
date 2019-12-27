@@ -255,9 +255,7 @@ def movie_review_scraper(url):
         ratings = soup.find_all('p', attrs={'class': 'post'})
 
         for rank, rate in zip(rankings, ratings):
-            if '"odpad!"' in str(rank):
-                scraper_temp_output.append({'rank': -3, 'words': ((str(rate)[17:])[:-47]).split()})
-            elif '"*"' in str(rank):
+            if '"*"' in str(rank):
                 scraper_temp_output.append({'rank': -2, 'words': ((str(rate)[17:])[:-47]).split()})
             elif '"**"' in str(rank):
                 scraper_temp_output.append({'rank': -1, 'words': ((str(rate)[17:])[:-47]).split()})
@@ -283,11 +281,10 @@ def movie_review_scraper(url):
 
     print(f'{datetime.datetime.now()} finished scraping {url}')
 
+
 if __name__ == "__main__":
     # fill the list with urls used for movie data scraping
     movie_review_url_collector()
-    movie_review_urls = movie_review_urls[:3]
-    print(movie_review_urls)
 
     # process the list items in a multi-threaded pool based scraper function movie_review_scraper
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
