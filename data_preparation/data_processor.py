@@ -52,15 +52,14 @@ def word_valence_calculator(input_file_path, temp_file_path, output_file_path):
     for cg in corpus_gen:
         czech_corpus_words.append(cg)
 
-
     # with open(temp_file_path, 'r', encoding='utf8') as c:
     #     for line in c:
     #         czech_corpus_words.append(line)
 
 
-    for item in input_words:
+    for item in czech_corpus_words:
         if item not in czech_stopwords:
-            if item in czech_corpus_words:
+            if item in input_words:
                 input_words_reduced.append(item)
 
     print('step #2 completed')
