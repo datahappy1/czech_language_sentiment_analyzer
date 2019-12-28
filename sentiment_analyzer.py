@@ -14,6 +14,7 @@ def af(sent_file):
     # print(scores.items())  # Print every (term, score) pair in the dictionary
     return scores.items()
 
+
 def tf(sent_file, tweet_file):
     scores = af(sent_file)
     for line in tweet_file:
@@ -30,13 +31,16 @@ def tf(sent_file, tweet_file):
         except AttributeError:
             print(0)
 
+
 def lines(fp):
     print(str(len(fp.readlines())))
+
 
 def main():
     sent_file = open(sys.argv[1])
     tweet_file = open(sys.argv[2])
     tf(sent_file, tweet_file)
+
 
 if __name__ == '__main__':
     main()
