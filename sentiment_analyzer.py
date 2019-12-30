@@ -3,6 +3,7 @@ sentiment analyzer CLI tool
 """
 import argparse
 import logging
+from fuzzywuzzy import fuzz
 
 
 logging.basicConfig(
@@ -10,6 +11,10 @@ logging.basicConfig(
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S')
 LOGGER = logging.getLogger(__name__)
+
+
+def _read_czech_stopwords():
+    pass
 
 
 def _read_valence_file_generator(valence_file):
@@ -58,12 +63,19 @@ def get_sentiment(prepared_args):
     """
     valence_file = read_valence_file(prepared_args['level'])
     words = prepared_args['string'].split()
+    fuzzy = prepared_args['fuzzy']
     sentiment_stack = 0.0
 
     for word in words:
         for item in valence_file:
-            if word in item:
-                sentiment_stack += item[1]
+            if fuzzy is False:
+                if word in item:
+                    sentiment_stack += item[1]
+            else:
+                ratio = fuzz.ratio(word, item)
+                if ratio > 50:
+                    # print(str(ratio) + str(word) + str(item))
+                    sentiment_stack += item[1]
 
     LOGGER.info('Sentiment calculated successfully')
 
@@ -80,12 +92,18 @@ def prepare_args():
     parser.add_argument('-string', '--inputstring', type=str, required=True)
     parser.add_argument('-level', '--depthlevel', type=str, required=False, default='low',
                         choices=['low', 'high'])
-    parser.add_argument('-fuzzy', '--fuzzymatch', type=bool, required=False, default=False)
+    parser.add_argument('-fuzzy', '--fuzzymatch', type=str, required=False, default=False)
     parsed = parser.parse_args()
 
     string = parsed.inputstring
     level = parsed.depthlevel
     fuzzy = parsed.fuzzymatch
+    # arg parse bool data type known bug workaround
+    if fuzzy.lower() in ('no', 'false', 'f', 'n', '0'):
+        fuzzy = False
+    else:
+        fuzzy = True
+
 
     LOGGER.info('arguments parsed successfully')
 
