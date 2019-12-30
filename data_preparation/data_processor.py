@@ -4,7 +4,7 @@ from statistics import mean
 input_words = []
 input_words_reduced = []
 czech_corpus_words = []
-czech_stopwords = ['a', 'u', 'v', 'aby', 's', 'o', 'jak', 'to', 'ale', 'za', 've', 'i', ',',
+czech_stopwords = [' ', 'a', 'u', 'v', 'aby', 's', 'o', 'jak', 'to', 'ale', 'za', 've', 'i', ',',
                    'ja', 'ke', 'co', 'je', 'z', 'sa', 'na', 'ze', 'ač', 'že', 'či', 'který',
                    'nějaký', 'pouze', 'bez', 'si', 'jsem', 'já', 'jí', 'by', 'asi', 'být',
                    'mi', 'je', 'jim', 'mě', 'musí', 'se', 'dnes', 'cz', 'timto', 'budes',
@@ -21,7 +21,7 @@ czech_stopwords = ['a', 'u', 'v', 'aby', 's', 'o', 'jak', 'to', 'ale', 'za', 've
                    'zpravy', 'nove', 'neni', 'vas', 'jen', 'podle', 'zde', 'clanek', 'uz', 'email',
                    'byt', 'vice', 'bude', 'jiz', 'nez', 'ktery', 'by', 'ktere', 'co', 'nebo', 'ten',
                    'tak', 'ma', 'pri', 'od', 'po', 'jsou', 'jak', 'dalsi', 'ale', 'si', 've', 'to',
-                   'jako', 'za', 'zpet', 'ze', 'do', 'pro', 'je', 'na']
+                   'jako', 'za', 'zpet', 'ze', 'do', 'pro', 'je', 'na', '.', ',']
 
 
 # 2 reduce the words list of lists to remove czech stopwords
@@ -32,7 +32,8 @@ def _read_temp_file_Generator(temp_file_path):
         # yield row[:-1]
         try:
             yield [row.split()[0],int(row.split()[1])]
-        except (Exception,IndexError):
+        # except (Exception,IndexError):
+        except IndexError:
             yield '#NA'
 
 
@@ -50,22 +51,25 @@ def word_valence_calculator(input_file_path, temp_file_path, output_file_path):
     with open(input_file_path, 'r', encoding='utf8') as c:
         for line in c:
             input_words.append(line[:-1])
-
+    #
     print(len(input_words))
     # print(input_words)
 
     # 1 open input_file_path text file and store it as a list of lists of words
     # with the corresponding movie review rating values, eg.[['word1', 2],['word2', -1]]
     corpus_gen = _read_temp_file_Generator(temp_file_path)
-    input_file_gen = _read_input_file_Generator(input_file_path)
+    # input_file_gen = _read_input_file_Generator(input_file_path)
 
     for cg in corpus_gen:
         # czech_corpus_words.append(cg)
-        if str(cg[0]).lower() not in czech_stopwords:
+        if str(cg[0]) not in czech_stopwords:
             # print(str(cg[0]).lower())
-            for ifg in input_file_gen:
-                if str(cg[0]).lower() in ifg:
-                # if str(cg[0]).lower() in input_words:
+            # for ifg in input_file_gen:
+            for iw in input_words:
+            #     if str(cg[0]).lower() == ifg:
+            #         print(cg[0] + '-' +ifg)
+                if str(cg[0]) == iw:
+                    print(cg[0] + '-' + iw )
                     input_words_reduced.append(cg)
 
     # with open(temp_file_path, 'r', encoding='utf8') as f:
@@ -85,6 +89,12 @@ def word_valence_calculator(input_file_path, temp_file_path, output_file_path):
     #             input_words_reduced.append(item)
 
     print(len(input_words_reduced))
+    # if len(input_words_reduced) > 0:
+    #     with open("./data_temp/xxx.txt",'w') as x:
+    #         for line in input_words_reduced:
+    #             x.write(str(line))
+
+
     print(f'{datetime.datetime.now()} step #2 completed')
 
     # 3 calculate the mean valence for each word
@@ -102,7 +112,8 @@ def word_valence_calculator(input_file_path, temp_file_path, output_file_path):
     # 4 save the calculated results to the output_file_path text file
     with open(output_file_path, 'w', encoding='utf8') as fw:
         for key, value in dict.items():
-            fw.write(key + ' ' + str(int(value[0])) + '\n')
+            # fw.write(key + ' ' + str(int(value[0])) + '\n')
+            fw.write(key + ' ' + str(value[0]) + '\n')
 
     print(f'{datetime.datetime.now()} step #4 completed')
 
