@@ -5,6 +5,7 @@ import argparse
 import logging
 from fuzzywuzzy import fuzz
 
+CZECH_STOPWORDS = []
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -14,7 +15,13 @@ LOGGER = logging.getLogger(__name__)
 
 
 def _read_czech_stopwords():
-    pass
+    """
+    read czech stopwords from czech_stopwords.txt file to a list
+    :return:
+    """
+    with open("./data_preparation/czech_stopwords.txt", 'r', encoding='utf8') as stop_word_file:
+        for line in stop_word_file:
+            CZECH_STOPWORDS.append(line[:-1])
 
 
 def _read_valence_file_generator(valence_file):
@@ -61,21 +68,25 @@ def get_sentiment(prepared_args):
     :param prepared_args:
     :return: sentiment value
     """
+    _read_czech_stopwords()
+
     valence_file = read_valence_file(prepared_args['level'])
     words = prepared_args['string'].split()
     fuzzy = prepared_args['fuzzy']
     sentiment_stack = 0.0
 
     for word in words:
-        for item in valence_file:
-            if fuzzy is False:
-                if word in item:
-                    sentiment_stack += item[1]
-            else:
-                ratio = fuzz.ratio(word, item)
-                if ratio > 50:
-                    # print(str(ratio) + str(word) + str(item))
-                    sentiment_stack += item[1]
+        if word not in CZECH_STOPWORDS:
+            for item in valence_file:
+                if fuzzy is False:
+                    if word in item:
+                        print(word + ': ' + str(item[1]))
+                        sentiment_stack += item[1]
+                else:
+                    ratio = fuzz.ratio(word, item)
+                    if ratio > 50:
+                        # print(str(ratio) + str(word) + str(item))
+                        sentiment_stack += item[1]
 
     LOGGER.info('Sentiment calculated successfully')
 

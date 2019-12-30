@@ -43,7 +43,7 @@ def word_valence_calculator():
     # 1 read czech_stopwords.txt file and load it to the CZECH_STOPWORDS list
     with open(CZECH_STOPWORDS_FILE_PATH, 'r', encoding='utf8') as stop_word_file:
         for line in stop_word_file:
-            CZECH_STOPWORDS.append(line)
+            CZECH_STOPWORDS.append(line[:-1])
 
     print(f'{datetime.datetime.now()} step #1 completed')
 
