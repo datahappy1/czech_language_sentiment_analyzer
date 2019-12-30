@@ -5,9 +5,9 @@ import datetime
 import pandas as pd
 
 CZECH_STOPWORDS_FILE_PATH = 'czech_stopwords.txt'
-INPUT_FILE_PATH = './data_input/small_czech_words_list.txt'
+INPUT_FILE_PATH = './data_input/big_czech_words_list.txt'
 TEMP_FILE_PATH = './data_temp/temp_file.txt'
-OUTPUT_FILE_PATH = './data_output/small_czech_words_list_w_word_valence.txt'
+OUTPUT_FILE_PATH = './data_output/big_czech_words_list_w_word_valence.txt'
 
 INPUT_WORDS = []
 TEMP_FILE_WORDS = []
