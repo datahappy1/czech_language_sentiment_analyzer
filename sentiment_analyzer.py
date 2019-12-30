@@ -97,4 +97,4 @@ def prepare_args():
 if __name__ == '__main__':
     PREPARED_ARGS = prepare_args()
     SENTIMENT_RESULT = get_sentiment(PREPARED_ARGS)
-    LOGGER.info('Sentiment value is: {}'.format(SENTIMENT_RESULT))
+    LOGGER.info('Sentiment value is: %s', SENTIMENT_RESULT)
