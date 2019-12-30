@@ -1,128 +1,96 @@
+"""
+data processor
+"""
 import datetime
-from statistics import mean
+import pandas as pd
 
-input_words = []
-input_words_reduced = []
-czech_corpus_words = []
-czech_stopwords = [' ', 'a', 'u', 'v', 'aby', 's', 'o', 'jak', 'to', 'ale', 'za', 've', 'i', ',',
-                   'ja', 'ke', 'co', 'je', 'z', 'sa', 'na', 'ze', 'ač', 'že', 'či', 'který',
-                   'nějaký', 'pouze', 'bez', 'si', 'jsem', 'já', 'jí', 'by', 'asi', 'být',
-                   'mi', 'je', 'jim', 'mě', 'musí', 'se', 'dnes', 'cz', 'timto', 'budes',
-                   'budem', 'byli', 'jses', 'muj', 'svym', 'ta', 'tomto', 'tohle', 'tuto',
-                   'tyto', 'jej', 'zda', 'proc', 'mate', 'tato', 'kam', 'tohoto', 'kdo',
-                   'kteri', 'mi', 'nam', 'tom', 'tomuto', 'mit', 'nic', 'proto', 'kterou',
-                   'byla', 'toho', 'protoze', 'asi', 'ho', 'nasi', 'napiste', 're', 'coz',
-                   'tim', 'takze', 'svych', 'jeji', 'svymi', 'jste', 'aj', 'tu', 'tedy',
-                   'teto', 'bylo', 'kde', 'ke', 'prave', 'ji', 'nad', 'nejsou', 'ci', 'pod',
-                   'tema', 'mezi', 'pres', 'ty', 'pak', 'vam', 'ani', 'kdyz', 'vsak', 'ne',
-                   'jsem', 'tento', 'clanku', 'clanky', 'aby', 'jsme', 'pred', 'pta', 'jejich',
-                   'byl', 'jeste', 'az', 'bez', 'take', 'pouze', 'prvni', 'vase', 'ktera', 'nas',
-                   'novy', 'tipy', 'pokud', 'muze', 'design', 'strana', 'jeho', 'sve', 'jine',
-                   'zpravy', 'nove', 'neni', 'vas', 'jen', 'podle', 'zde', 'clanek', 'uz', 'email',
-                   'byt', 'vice', 'bude', 'jiz', 'nez', 'ktery', 'by', 'ktere', 'co', 'nebo', 'ten',
-                   'tak', 'ma', 'pri', 'od', 'po', 'jsou', 'jak', 'dalsi', 'ale', 'si', 've', 'to',
-                   'jako', 'za', 'zpet', 'ze', 'do', 'pro', 'je', 'na', '.', ',']
+CZECH_STOPWORDS_FILE_PATH = 'czech_stopwords.txt'
+INPUT_FILE_PATH = './data_input/small_czech_words_list.txt'
+TEMP_FILE_PATH = './data_temp/temp_file.txt'
+OUTPUT_FILE_PATH = './data_output/small_czech_words_list_w_word_valence.txt'
+
+INPUT_WORDS = []
+TEMP_FILE_WORDS = []
+CZECH_STOPWORDS = []
 
 
-# 2 reduce the words list of lists to remove czech stopwords
-# and remove words not in the czech adjectives corpus file
-def _read_temp_file_Generator(temp_file_path):
-    file = temp_file_path
-    for row in open(file, encoding="utf8"):
-        # yield row[:-1]
+def _read_temp_file_generator():
+    """
+    read temp file generator
+    :return: yield rows
+    """
+    for row in open(TEMP_FILE_PATH, encoding="utf8"):
         try:
-            yield [row.split()[0],int(row.split()[1])]
-        # except (Exception,IndexError):
+            yield (row.split()[0], int(row.split()[1]))
         except IndexError:
             yield '#NA'
 
 
-def _read_input_file_Generator(input_file_path):
-    file = input_file_path
-    for row in open(file, encoding="utf8"):
+def _read_input_file_generator():
+    """
+    read input file generator
+    :return: yield rows
+    """
+    for row in open(INPUT_FILE_PATH, encoding="utf8"):
         yield row[:-1]
 
 
-def word_valence_calculator(input_file_path, temp_file_path, output_file_path):
+def word_valence_calculator():
     """
     function for mean valence value calculation for each word
     :return: 0
     """
-    with open(input_file_path, 'r', encoding='utf8') as c:
-        for line in c:
-            input_words.append(line[:-1])
-    #
-    print(len(input_words))
-    # print(input_words)
+    # 1 read czech_stopwords.txt file and load it to the CZECH_STOPWORDS list
+    with open(CZECH_STOPWORDS_FILE_PATH, 'r', encoding='utf8') as stop_word_file:
+        for line in stop_word_file:
+            CZECH_STOPWORDS.append(line)
 
-    # 1 open input_file_path text file and store it as a list of lists of words
-    # with the corresponding movie review rating values, eg.[['word1', 2],['word2', -1]]
-    corpus_gen = _read_temp_file_Generator(temp_file_path)
-    # input_file_gen = _read_input_file_Generator(input_file_path)
-
-    for cg in corpus_gen:
-        # czech_corpus_words.append(cg)
-        if str(cg[0]) not in czech_stopwords:
-            # print(str(cg[0]).lower())
-            # for ifg in input_file_gen:
-            for iw in input_words:
-            #     if str(cg[0]).lower() == ifg:
-            #         print(cg[0] + '-' +ifg)
-                if str(cg[0]) == iw:
-                    print(cg[0] + '-' + iw )
-                    input_words_reduced.append(cg)
-
-    # with open(temp_file_path, 'r', encoding='utf8') as f:
-    #     for line in f:
-    #         try:
-    #             input_words.append([line.split()[0],int(line.split()[1])])
-    #         except IndexError:
-    #             pass
-    # print(czech_corpus_words)
-    # print(len(czech_corpus_words))
     print(f'{datetime.datetime.now()} step #1 completed')
 
+    # 2 read temp file line by line through it's generator
+    # in case it cannot fit into memory at once and load the values
+    # into a Pandas data frame
+    temp_file_gen = _read_temp_file_generator()
 
-    # for item in czech_corpus_words:
-    #     if str(item).lower() not in czech_stopwords:
-    #         if str(item).lower() in input_words:
-    #             input_words_reduced.append(item)
+    for tfg in temp_file_gen:
+        if str(tfg[0]) not in CZECH_STOPWORDS:
+            if len(tfg) == 2:
+                TEMP_FILE_WORDS.append(tfg)
 
-    print(len(input_words_reduced))
-    # if len(input_words_reduced) > 0:
-    #     with open("./data_temp/xxx.txt",'w') as x:
-    #         for line in input_words_reduced:
-    #             x.write(str(line))
-
+    df_temp_file = pd.DataFrame(TEMP_FILE_WORDS, columns=['word', 'valence'])
 
     print(f'{datetime.datetime.now()} step #2 completed')
 
-    # 3 calculate the mean valence for each word
-    dict = {}
-    for elem in input_words_reduced:
-        if elem[0] not in dict:
-            dict[elem[0]] = []
-        dict[elem[0]].append(elem[1:])
+    # 3 read input file line by line through it's generator
+    # in case it cannot fit into memory at once and load the values
+    # into a Pandas data frame
+    input_file_gen = _read_input_file_generator()
 
-    for key in dict:
-        dict[key] = [mean(i) for i in zip(*dict[key])]
+    for ifg in input_file_gen:
+        INPUT_WORDS.append(ifg)
+
+    df_input_file = pd.DataFrame(INPUT_WORDS, columns=['word'])
 
     print(f'{datetime.datetime.now()} step #3 completed')
 
-    # 4 save the calculated results to the output_file_path text file
-    with open(output_file_path, 'w', encoding='utf8') as fw:
-        for key, value in dict.items():
-            # fw.write(key + ' ' + str(int(value[0])) + '\n')
-            fw.write(key + ' ' + str(value[0]) + '\n')
+    # 4 merge the 2 Pandas data frames inner-join style on the column "word"
+    df_merged = pd.merge(df_temp_file, df_input_file, how='inner', on=['word'])
 
     print(f'{datetime.datetime.now()} step #4 completed')
+
+    # 5 calculate the mean valence for each word using Pandas "group by" and mean methods
+    # and write the data frame with the matched words and their calculated valence values
+    # into the output file
+    df_merged_grouped = df_merged.groupby('word').mean()
+
+    df_merged_grouped.to_csv(OUTPUT_FILE_PATH, encoding='utf8', header=False,
+                             sep=' ', line_terminator='\n')
+
+    print(f'{datetime.datetime.now()} step #5 completed')
 
     return 0
 
 
 if __name__ == "__main__":
-    res = word_valence_calculator(input_file_path = './data_input/lot_of_czech_words.txt',
-                                  temp_file_path = './data_temp/temp_file.txt',
-                                  output_file_path = './data_output/lot_of_czech_words_rated_for_valence.txt')
-    if res == 0:
+    if word_valence_calculator() == 0:
         print("Data processing phase complete.")
