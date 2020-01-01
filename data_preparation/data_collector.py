@@ -3,6 +3,7 @@ data collector
 """
 from random import randint
 from time import sleep
+import re
 import concurrent.futures
 import datetime
 from bs4 import BeautifulSoup
@@ -44,6 +45,20 @@ class Anonymize:
         return self.headers[randint(0, len(self.headers)-1)]
 
 
+def _replace_all(text):
+    """
+    multi replace string function
+    :param text:
+    :return:
+    """
+    replacements = {'"': '', '.': '', '(': '', ')': '', ',': '',
+                    '-': '', '?': '', '!': '', ':': '', '/': ''}
+
+    for i, j in replacements.items():
+        text = text.replace(i, j)
+    return text
+
+
 def movie_review_url_collector():
     """
     function collecting urls with the movie reviews
@@ -60,7 +75,7 @@ def movie_review_url_collector():
         for url_item in movie_review_url[:300]:
             children = url_item.findChildren("a", recursive=False)
             movie_name = str(children).split("/")[2]
-            for random_index in ([2, 3, 4, 5, 6]):
+            for random_index in ([2, 3, 4, 5, 6, 7]):
                 review_page = str(random_index)
                 MOVIE_REVIEW_URLS.append('https://www.csfd.cz/film/{}/komentare/strana-{}'.
                                          format(movie_name, review_page))
@@ -81,31 +96,71 @@ def movie_review_scraper(url_to_scrape):
         Anonymize.sleeper()
         page = requests.get(url, headers=Anonymize.randomize_request_headers(obj))
         if page.status_code == 200:
-            soup = BeautifulSoup(page.content, 'html.parser')
-            rankings = soup.find_all('img', attrs={'class': 'rating'})
-            ratings = soup.find_all('p', attrs={'class': 'post'})
 
-            for rank, rate in zip(rankings, ratings):
+            # the <li> html tag structure we're scraping in loops:
+            #
+            # variation #1 with star count as rank in the img alt text tag:
+            #   <li id = "comment-796722" >
+            #       <div class ="info" >
+            #           <a href = "" > all reviewer's reviews </a>/
+            #           <a href = "" > <img src = "" class ="" ></a>
+            #       </div>
+            #       <h5 class = "author" > <a href="" > reviewers nickname </a></h5>
+            #       <img src = "" class ="rating" width="32" alt="****" / >
+            #       <p class ="post" > movie review
+            #       <span class ="date desc" > date of review </span></p>
+            #   </li>
+            #
+            # variation #2 with 1 word ranking ("odpad!" translates to "junk") in the strong tag:
+            #   <li id = "comment-9092651" >
+            #       <div class ="info" >
+            #           <a href = "" > all reviewer's reviews </a>/
+            #           <a href = "" > <img src = "" class ="" ></a>
+            #       </div>
+            #       <h5 class ="author" > <a href="" > reviewers nickname </a></h5>
+            #       <strong class ="rating" > odpad! </strong>
+            #       <p class ="post" > movie review
+            #       <span class ="date desc" > date of review </span></p>
+            #   </li>
+
+            soup = BeautifulSoup(page.content, 'html.parser')
+            _l_substring_to_trim_to = '<p class="post">'
+            _r_substring_to_trim_from = '<span class="date desc">'
+            for soup_item in soup.find_all("li", {"id" : re.compile(r"comment-*")}):
                 scraper_temp_output = []
-                if '"*"' in str(rank):
+                img = soup_item.findChildren("img",
+                                             attrs={'class': 'rating'})
+                strong = soup_item.findChildren(["strong", "p"],
+                                                attrs={'class': ['rating', 'post']})
+
+                if strong and str(strong).startswith('[<strong class="rating">odpad!</strong>'):
+                    _r_trim = len(str(strong)) - str(strong).rfind(_r_substring_to_trim_from)
+                    _l_trim = str(strong).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
                     scraper_temp_output.append({'rank': -2,
-                                                'words': ((str(rate)[17:])[:-47]).split()})
-                elif '"**"' in str(rank):
-                    scraper_temp_output.append({'rank': -1,
-                                                'words': ((str(rate)[17:])[:-47]).split()})
-                elif '"***"' in str(rank):
-                    scraper_temp_output.append({'rank': 1,
-                                                'words': ((str(rate)[17:])[:-47]).split()})
-                elif '"****"' in str(rank):
-                    scraper_temp_output.append({'rank': 2,
-                                                'words': ((str(rate)[17:])[:-47]).split()})
-                elif '"*****"' in str(rank):
-                    scraper_temp_output.append({'rank': 2,
-                                                'words': ((str(rate)[17:])[:-47]).split()})
+                                                'words': str(strong)[_l_trim:-_r_trim].split()})
+
+                else:
+                    _r_trim = len(str(img)) - str(img).rfind(_r_substring_to_trim_from)
+                    _l_trim = str(img).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
+                    if img and str(img).startswith('[<img alt="*"'):
+                        scraper_temp_output.append({'rank': -2,
+                                                    'words': str(img)[_l_trim:-_r_trim].split()})
+                    elif img and str(img).startswith('[<img alt="**"'):
+                        scraper_temp_output.append({'rank': -1,
+                                                    'words': str(img)[_l_trim:-_r_trim].split()})
+                    elif img and str(img).startswith('[<img alt="***"'):
+                        scraper_temp_output.append({'rank': 1,
+                                                    'words': str(img)[_l_trim:-_r_trim].split()})
+                    elif img and str(img).startswith('[<img alt="****"'):
+                        scraper_temp_output.append({'rank': 2,
+                                                    'words': str(img)[_l_trim:-_r_trim].split()})
+                    elif img and str(img).startswith('[<img alt="*****"'):
+                        scraper_temp_output.append({'rank': 2,
+                                                    'words': str(img)[_l_trim:-_r_trim].split()})
 
                 for sto in scraper_temp_output:
                     for i_word in sto.get('words'):
-                        word = str(i_word).lower().replace('.', '').replace(',', '')
+                        word = _replace_all(str(i_word).lower())
                         rank = str(sto.get('rank'))
                         SCRAPER_FINAL_OUTPUT.append(word + ' ' + rank)
 
@@ -116,7 +171,8 @@ def movie_review_scraper(url_to_scrape):
 
     except urllib3.exceptions.ConnectionError as connerr:
         print(str(connerr))
-
+    except Exception as exc:
+        print(str(exc))
 
 if __name__ == "__main__":
     # fill the list with urls used for movie data scraping

@@ -73,25 +73,40 @@ def get_sentiment(prepared_args):
     valence_file = read_valence_file(prepared_args['level'])
     words = prepared_args['string'].split()
     fuzzy = prepared_args['fuzzy']
-    sentiment_stack = 0.0
+    fuzzy_threshold = 0
+    if prepared_args['level'] == "high":
+        fuzzy_threshold = 70
+    elif prepared_args['level'] == "low":
+        fuzzy_threshold = 52
+    sentiment_value = 0.0
+    sentiment_details = []
+    _match_counter = 0
 
     for word in words:
         if word not in CZECH_STOPWORDS:
             for item in valence_file:
-                if fuzzy is False:
-                    if word in item:
-                        print(word + ': ' + str(item[1]))
-                        sentiment_stack += item[1]
-                else:
+                if word in item:
+                    _match_counter += 1
+                    sentiment_value += item[1]
+                    sentiment_details.append({'word': word,
+                                              'sentiment_value': item[1]})
+                elif fuzzy is True:
                     ratio = fuzz.ratio(word, item)
-                    if ratio > 50:
-                        # print(str(ratio) + str(word) + str(item))
-                        sentiment_stack += item[1]
+                    if ratio > fuzzy_threshold:
+                        _match_counter += 1
+                        sentiment_value += item[1]
+                        sentiment_details.append({'word': word,
+                                                  'sentiment_value': item[1],
+                                                  'fuzzy_ratio': ratio})
+                else:
+                    pass
 
-    LOGGER.info('Sentiment calculated successfully')
-
-    return sentiment_stack
-
+    if _match_counter > 0:
+        LOGGER.info('Sentiment calculated successfully')
+        return sentiment_value, sentiment_details
+    else:
+        LOGGER.warning('No values for sentiment analysis found')
+        return None, None
 
 
 def prepare_args():
@@ -115,7 +130,6 @@ def prepare_args():
     else:
         fuzzy = True
 
-
     LOGGER.info('arguments parsed successfully')
 
     return {'string': string,
@@ -125,5 +139,6 @@ def prepare_args():
 
 if __name__ == '__main__':
     PREPARED_ARGS = prepare_args()
-    SENTIMENT_RESULT = get_sentiment(PREPARED_ARGS)
+    SENTIMENT_RESULT, SENTIMENT_DETAILS = get_sentiment(PREPARED_ARGS)
     LOGGER.info('Sentiment value is: %s', SENTIMENT_RESULT)
+    LOGGER.info('Sentiment value details: %s', SENTIMENT_DETAILS)
