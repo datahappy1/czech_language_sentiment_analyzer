@@ -4,6 +4,7 @@ sentiment analyzer CLI tool
 import argparse
 import logging
 from fuzzywuzzy import fuzz
+from lib.utils import _replace_all
 
 CZECH_STOPWORDS = []
 
@@ -43,15 +44,30 @@ def read_valence_file(level):
     :param level:
     :return:
     """
-    if level == "low":
+    valence_file = None
+
+    if level == "naivebayes":
+        pass
+
+    elif level == "affin111":
+        valence_file = open("../data_preparation/word_valence_mean_approach/"
+                            "data_output/affin111_translated_list_w_word_valence.txt",
+                            encoding='utf8')
+
+    elif level == "small":
         valence_file = open("../data_preparation/word_valence_mean_approach/"
                             "data_output/small_czech_words_list_w_word_valence.txt",
                             encoding='utf8')
 
-    elif level == "high":
+    elif level == "big":
         valence_file = _read_valence_file_generator("../data_preparation/"
                                                     "word_valence_mean_approach/data_output/"
                                                     "big_czech_words_list_w_word_valence.txt")
+
+    elif level == "full":
+        valence_file = _read_valence_file_generator("../data_preparation/"
+                                                    "word_valence_mean_approach/data_output/"
+                                                    "bag_of_words_list_w_word_valence.txt")
 
     else:
         raise FileNotFoundError
@@ -78,10 +94,17 @@ def get_sentiment(prepared_args):
     words = prepared_args['string'].split()
     fuzzy = prepared_args['fuzzy']
     fuzzy_threshold = 0
-    if prepared_args['level'] == "high":
-        fuzzy_threshold = 70
-    elif prepared_args['level'] == "low":
-        fuzzy_threshold = 60
+    if fuzzy:
+        if prepared_args['level'] == "naivebayes":
+            fuzzy_threshold = 60
+        elif prepared_args['level'] == "affin111":
+            fuzzy_threshold = 60
+        elif prepared_args['level'] == "small":
+            fuzzy_threshold = 60
+        elif prepared_args['level'] == "big":
+            fuzzy_threshold = 70
+        elif prepared_args['level'] == "full":
+            fuzzy_threshold = 80
     sentiment_value = 0.0
     sentiment_details = []
     _match_counter = 0
@@ -89,13 +112,13 @@ def get_sentiment(prepared_args):
     for word in words:
         if word not in CZECH_STOPWORDS:
             for item in valence_file:
-                if word in item:
+                if _replace_all(word.lower()) in item:
                     _match_counter += 1
                     sentiment_value += item[1]
                     sentiment_details.append({'word': word,
                                               'sentiment_value': round(item[1], 2)})
                 elif fuzzy is True:
-                    ratio = fuzz.ratio(word, item)
+                    ratio = fuzz.ratio(_replace_all(word.lower()), item)
                     if ratio > fuzzy_threshold:
                         _match_counter += 1
                         sentiment_value += item[1]
@@ -131,8 +154,8 @@ def prepare_args():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('-string', '--inputstring', type=str, required=True)
-    parser.add_argument('-level', '--depthlevel', type=str, required=False, default='low',
-                        choices=['low', 'high'])
+    parser.add_argument('-atype', '--algorithmtype', type=str, required=True,
+                        choices=['naivebayes', 'small', 'big', 'full'])
     parser.add_argument('-fuzzy', '--fuzzymatch', type=str, required=False, default=False)
     parsed = parser.parse_args()
 

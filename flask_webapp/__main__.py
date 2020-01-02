@@ -32,17 +32,18 @@ def main():
 
     elif request.method == 'POST':
         input_text = request.form.get('InputText')
-        level = 'low'
+        algorithm_type = request.form.get('AlgorithmTypeSelect')
         fuzzy = request.form.get('FuzzyMatch')
 
         prepared_args = {'string': input_text,
-                         'level': level,
+                         'level': algorithm_type,
                          'fuzzy': (True if fuzzy else False)}
 
         sentiment_result = get_sentiment(prepared_args)
 
         return render_template('index.html',
                                template_input_string=input_text,
+                               template_algorithm_type=algorithm_type,
                                template_fuzzy=(True if fuzzy else False),
                                template_sentiment_result=sentiment_result)
 

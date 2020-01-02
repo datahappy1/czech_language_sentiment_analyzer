@@ -1,6 +1,16 @@
 {% extends "layout.html" %}
 {% block content %}
 
+<script>
+  var toggle = function() {
+  var mydiv = document.getElementById('newpost');
+  if (mydiv.style.display === 'block' || mydiv.style.display === '')
+    mydiv.style.display = 'none';
+  else
+    mydiv.style.display = 'block'
+  }
+</script>
+
 <nav class="navbar navbar-expand-lg navbar-light bg-primary">
     <a class="navbar-brand" href="{{ url_for('main') }}">Czech language sentiment analyzer</a>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -13,23 +23,25 @@
 </nav>
 
 {% if template_sentiment_result %}
-<div class="alert alert-info">
+<div id="newpost" class="alert alert-info">
+    <button type="button" class="close" aria-label="Close" onclick="toggle();">
+        <span aria-hidden="true">&times;</span>
+    </button>
+
     Overall sentiment: <strong> {{ template_sentiment_result[0] }} </strong>
     <ol>
         {% for res in template_sentiment_result[1] %}
-            <li>
-                {{ res.get('word') }} : {{ res.get('sentiment_value') }}
-                {% if res.get('fuzzy_ratio') %}
-                    ( fuzzy ratio : {{ res.get('fuzzy_ratio') }} ,
-                      fuzzy matched word : {{ res.get('fuzzy_matched_word') }} )
-                {% endif %}
-            </li>
+        <li>
+            {{ res.get('word') }} : {{ res.get('sentiment_value') }}
+            {% if res.get('fuzzy_ratio') %}
+            ( fuzzy ratio : {{ res.get('fuzzy_ratio') }} ,
+            fuzzy matched word : {{ res.get('fuzzy_matched_word') }} )
+            {% endif %}
+        </li>
         {% endfor %}
     </ol>
 </div>
 {% endif %}
-
-<!--https://getbootstrap.com/docs/4.3/components/navbar/-->
 
 <div class="container-fluid">
 
@@ -42,8 +54,19 @@
         <div class="form-group">
             <label for="AlgorithmTypeSelect">Algorithm type</label>
             <select class="form-control" id="AlgorithmTypeSelect" name="AlgorithmTypeSelect">
-                <option>Naive Bayes</option>
-                <option>Word valence mean</option>
+                <option value="naivebayes" {% if template_algorithm_type == "naivebayes" %}selected{% endif %}>
+                    Naive Bayes</option>
+                <option value="small" {% if template_algorithm_type == "small" %}selected{% endif %}>
+                    Word valence mean - Dataset of ~2k words with associated valence values generated from scraping of the Czech movie review database.</option>
+                <option value="big" {% if template_algorithm_type == "big" %}selected{% endif %}>
+                    Word valence mean - Dataset of ~96k words with associated valence values generated from scraping of the Czech movie review database.</option>
+                <option value="full" {% if template_algorithm_type == "full" %}selected{% endif %}>
+                    Word valence mean - Dataset of ~203k words with associated valence values generated from scraping of the Czech movie review database.</option>
+                <option value="affin111" {% if template_algorithm_type == "affin111" %}selected{% endif %}>
+                    Word valence mean - Dataset of ~2,5k words with associated valence values generated as a translation from English to Czech of Finn Årup Nielsen's AFINN-111 manually labeled text file.</option>
+                <option value="all" {% if template_algorithm_type == "all" %}selected{% endif %}>
+                    Use all of the algorithms above ( might take some time ) </option>
+
             </select>
         </div>
         <div class="form-group">
@@ -51,7 +74,7 @@
                 <input class="form-check-input" type="checkbox" value="True" id="FuzzyMatch" name="FuzzyMatch"
                        {%if template_fuzzy %} checked {% endif %}>
                 <label class="form-check-label" for="FuzzyMatch">
-                    Fuzzy match input text words
+                    Include Fuzzy match of input text words
                 </label>
             </div>
         </div>
