@@ -191,7 +191,7 @@ if __name__ == "__main__":
                 print('%r generated an exception: %s' % (url, exc))
 
     # write to temp_file_bck1.txt the scraped movie review data
-    with open('./data_temp/temp_file.txt', 'w', encoding='utf8') as fw:
+    with open('./common/bag_of_words.txt', 'w', encoding='utf8') as fw:
         for item in SCRAPER_FINAL_OUTPUT:
             fw.write(item + '\n')
 

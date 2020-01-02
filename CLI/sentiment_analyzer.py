@@ -14,22 +14,24 @@ logging.basicConfig(
 LOGGER = logging.getLogger(__name__)
 
 
-def _read_czech_stopwords():
+def _read_czech_stopwords(stopword_file_path):
     """
     read czech stopwords from czech_stopwords.txt file to a list
+    :param  stopword_file_path
     :return:
     """
-    with open("./data_preparation/czech_stopwords.txt", 'r', encoding='utf8') as stop_word_file:
+    with open(stopword_file_path, 'r', encoding='utf8') as stop_word_file:
         for line in stop_word_file:
             CZECH_STOPWORDS.append(line[:-1])
 
 
-def _read_valence_file_generator(valence_file):
+def _read_valence_file_generator(valence_file_handler):
     """
     read valence file generator
+    :param valence_file_handler
     :return: yield rows
     """
-    for row in open(valence_file, encoding="utf8"):
+    for row in open(valence_file_handler, encoding="utf8"):
         yield row[:-1]
 
 
@@ -42,11 +44,13 @@ def read_valence_file(level):
     :return:
     """
     if level == "low":
-        valence_file = open("./data_preparation/data_output/"
-                            "small_czech_words_list_w_word_valence.txt", encoding='utf8')
+        valence_file = open("../data_preparation/word_valence_mean_approach/"
+                            "data_output/small_czech_words_list_w_word_valence.txt",
+                            encoding='utf8')
 
     elif level == "high":
-        valence_file = _read_valence_file_generator("./data_preparation/data_output/"
+        valence_file = _read_valence_file_generator("../data_preparation/"
+                                                    "word_valence_mean_approach/data_output/"
                                                     "big_czech_words_list_w_word_valence.txt")
 
     else:
@@ -68,7 +72,7 @@ def get_sentiment(prepared_args):
     :param prepared_args:
     :return: sentiment value
     """
-    _read_czech_stopwords()
+    _read_czech_stopwords("../data_preparation/czech_stopwords.txt")
 
     valence_file = read_valence_file(prepared_args['level'])
     words = prepared_args['string'].split()
@@ -77,7 +81,7 @@ def get_sentiment(prepared_args):
     if prepared_args['level'] == "high":
         fuzzy_threshold = 70
     elif prepared_args['level'] == "low":
-        fuzzy_threshold = 52
+        fuzzy_threshold = 60
     sentiment_value = 0.0
     sentiment_details = []
     _match_counter = 0
@@ -89,24 +93,35 @@ def get_sentiment(prepared_args):
                     _match_counter += 1
                     sentiment_value += item[1]
                     sentiment_details.append({'word': word,
-                                              'sentiment_value': item[1]})
+                                              'sentiment_value': round(item[1], 2)})
                 elif fuzzy is True:
                     ratio = fuzz.ratio(word, item)
                     if ratio > fuzzy_threshold:
                         _match_counter += 1
                         sentiment_value += item[1]
                         sentiment_details.append({'word': word,
-                                                  'sentiment_value': item[1],
-                                                  'fuzzy_ratio': ratio})
+                                                  'sentiment_value': round(item[1], 2),
+                                                  'fuzzy_ratio': ratio,
+                                                  'fuzzy_matched_word': item[0]})
                 else:
                     pass
 
     if _match_counter > 0:
+        if sentiment_value > 0:
+            sentiment = 'positive'
+        elif sentiment_value == 0:
+            sentiment = 'neutral'
+        else:
+            sentiment = 'negative'
+
         LOGGER.info('Sentiment calculated successfully')
-        return sentiment_value, sentiment_details
+        LOGGER.info('Words matched count: %s', _match_counter)
+        return sentiment, sentiment_details
     else:
+        sentiment = 'unknown - 0 word match'
+
         LOGGER.warning('No values for sentiment analysis found')
-        return None, None
+        return sentiment, []
 
 
 def prepare_args():

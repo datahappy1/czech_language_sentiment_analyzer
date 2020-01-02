@@ -1,3 +1,4 @@
+a
 aby
 aj
 ale
@@ -29,6 +30,7 @@ coz
 což
 cz
 dalsi
+další
 design
 dnes
 do
@@ -44,6 +46,7 @@ jeho
 jeji
 její
 jejich
+jelikož
 jen
 jeste
 ještě
@@ -61,12 +64,16 @@ jsou
 jste
 já
 jí
+k
 kam
+každý
 kde
 kdo
+kdy
 kdyz
 když
 ke
+koho
 ktera
 která
 ktere
@@ -84,6 +91,8 @@ mezi
 mi
 mit
 mít
+mně
+mě
 muj
 můj
 musí
@@ -105,6 +114,7 @@ nebo
 nejsou
 neni
 není
+něco
 nez
 než
 nic
@@ -143,7 +153,9 @@ ptá
 s
 sa
 se
+sem
 si
+snad
 strana
 sve
 své
@@ -157,13 +169,17 @@ ta
 tak
 take
 také
+taky
 tato
+tam
 tedy
+té
 tema
 téma
 tento
 teto
 této
+těch
 tim
 tím
 timto
@@ -174,6 +190,7 @@ tohle
 tohoto
 tom
 tomto
+tomu
 tomuto
 tu
 tuto

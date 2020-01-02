@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-light bg-primary">
     <a class="navbar-brand" href="{{ url_for('main') }}">Czech language sentiment analyzer</a>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="nav navbar-nav ml-auto">
@@ -12,71 +12,50 @@
     </div>
 </nav>
 
-<!--<div class="alert alert-info">-->
-<!--Insert text for sentiment analysis-->
-<!--</div>-->
+{% if template_sentiment_result %}
+<div class="alert alert-info">
+    Overall sentiment: <strong> {{ template_sentiment_result[0] }} </strong>
+    <ol>
+        {% for res in template_sentiment_result[1] %}
+            <li>
+                {{ res.get('word') }} : {{ res.get('sentiment_value') }}
+                {% if res.get('fuzzy_ratio') %}
+                    ( fuzzy ratio : {{ res.get('fuzzy_ratio') }} ,
+                      fuzzy matched word : {{ res.get('fuzzy_matched_word') }} )
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ol>
+</div>
+{% endif %}
 
 <!--https://getbootstrap.com/docs/4.3/components/navbar/-->
 
 <div class="container-fluid">
 
-    <form>
-        <label></label>
+    <form action="{{ url_for('main') }}" method="POST" enctype="multipart/form-data">
         <div class="form-group">
-            <label for="exampleFormControlTextarea1"></label>
-            <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"
-                      placeholder="type here the text for sentiment analysis.."></textarea>
+            <label for="InputText"></label>
+            <textarea class="form-control" id="InputText" name="InputText" rows="3"
+                      placeholder="Input your text for analysis here...">{{template_input_string}}</textarea>
         </div>
-
-        <fieldset class="form-group">
-            <div class="row">
-                <legend class="col-form-label col-sm-2 pt-0">Search type:</legend>
-                <div class="col-sm-10">
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios1" value="option1"
-                               checked>
-                        <label class="form-check-label" for="gridRadios1">
-                            Fast but shallow
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios2" value="option2">
-                        <label class="form-check-label" for="gridRadios2">
-                            Slow and deep
-                        </label>
-                    </div>
-
-                </div>
-            </div>
-        </fieldset>
-
-        <fieldset class="form-group">
-            <div class="row">
-                <legend class="col-form-label col-sm-2 pt-0">Word match:</legend>
-                <div class="col-sm-10">
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios3" value="option1"
-                               checked>
-                        <label class="form-check-label" for="gridRadios1">
-                            Exact
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios4" value="option2">
-                        <label class="form-check-label" for="gridRadios2">
-                            Fuzzy
-                        </label>
-                    </div>
-
-                </div>
-            </div>
-        </fieldset>
-
-        <div class="form-group row">
-            <div class="col-sm-10">
-                <button type="submit" class="btn btn-primary">Submit</button>
+        <div class="form-group">
+            <label for="AlgorithmTypeSelect">Algorithm type</label>
+            <select class="form-control" id="AlgorithmTypeSelect" name="AlgorithmTypeSelect">
+                <option>Naive Bayes</option>
+                <option>Word valence mean</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="True" id="FuzzyMatch" name="FuzzyMatch"
+                       {%if template_fuzzy %} checked {% endif %}>
+                <label class="form-check-label" for="FuzzyMatch">
+                    Fuzzy match input text words
+                </label>
             </div>
         </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 
 </div>
