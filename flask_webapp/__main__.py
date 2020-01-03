@@ -39,7 +39,7 @@ def main():
         algorithm_type = request.form.get('AlgorithmTypeSelect')
 
         if algorithm_type == 'all':
-            for algorithm in ['small', 'big', 'full', 'affin111']: #TODO add 'naivebayes'
+            for algorithm in ['small', 'big', 'affin111']: #TODO add 'naivebayes'
                 prepared_args = {'string': input_text,
                                  'level': algorithm,
                                  'fuzzy': fuzzy,

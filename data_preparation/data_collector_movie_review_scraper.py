@@ -12,6 +12,12 @@ import requests
 from lib.utils import _replace_all
 
 
+# Set SPLIT_SCRAPED_VALUES to True if you wish to store to SCRAPER_FINAL_OUTPUT dict
+# each word and corresponding movie review rank separately
+# If SPLIT_SCRAPED_VALUES set to False, the full review and the corresponding
+# movie review rank will get stored in the SCRAPER_FINAL_OUTPUT dict
+SPLIT_SCRAPED_VALUES = False
+OUTPUT_FILE_PATH = 'reviews_with_ranks.csv'
 SCRAPER_FINAL_OUTPUT = []
 MOVIE_REVIEW_URLS = []
 
@@ -59,10 +65,11 @@ def movie_review_url_collector():
         page = requests.get(start_page, headers=Anonymize.randomize_request_headers(obj))
         soup = BeautifulSoup(page.content, 'html.parser')
         movie_review_url = soup.find_all('td', attrs={'class': 'film'})
-        for url_item in movie_review_url[:300]:
+        for url_item in movie_review_url[:1]:
             children = url_item.findChildren("a", recursive=False)
             movie_name = str(children).split("/")[2]
-            for random_index in ([2, 3, 4, 5, 6, 7]):
+            for random_index in ([2]):
+            #for random_index in ([2, 3, 4, 5, 6, 7]):
                 review_page = str(random_index)
                 MOVIE_REVIEW_URLS.append('https://www.csfd.cz/film/{}/komentare/strana-{}'.
                                          format(movie_name, review_page))
@@ -120,36 +127,72 @@ def movie_review_scraper(url_to_scrape):
                 strong = soup_item.findChildren(["strong", "p"],
                                                 attrs={'class': ['rating', 'post']})
 
-                if strong and str(strong).startswith('[<strong class="rating">odpad!</strong>'):
-                    _r_trim = len(str(strong)) - str(strong).rfind(_r_substring_to_trim_from)
-                    _l_trim = str(strong).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
-                    scraper_temp_output.append({'rank': -2,
-                                                'words': str(strong)[_l_trim:-_r_trim].split()})
-
-                else:
-                    _r_trim = len(str(img)) - str(img).rfind(_r_substring_to_trim_from)
-                    _l_trim = str(img).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
-                    if img and str(img).startswith('[<img alt="*"'):
+                # store the scraped values as review split by words review rank pairs
+                # optimized for writing a txt file , line example: word -1
+                if SPLIT_SCRAPED_VALUES:
+                    if strong and str(strong).startswith('[<strong class="rating">odpad!</strong>'):
+                        _r_trim = len(str(strong)) - str(strong).rfind(_r_substring_to_trim_from)
+                        _l_trim = str(strong).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
                         scraper_temp_output.append({'rank': -2,
-                                                    'words': str(img)[_l_trim:-_r_trim].split()})
-                    elif img and str(img).startswith('[<img alt="**"'):
-                        scraper_temp_output.append({'rank': -1,
-                                                    'words': str(img)[_l_trim:-_r_trim].split()})
-                    elif img and str(img).startswith('[<img alt="***"'):
-                        scraper_temp_output.append({'rank': 1,
-                                                    'words': str(img)[_l_trim:-_r_trim].split()})
-                    elif img and str(img).startswith('[<img alt="****"'):
-                        scraper_temp_output.append({'rank': 2,
-                                                    'words': str(img)[_l_trim:-_r_trim].split()})
-                    elif img and str(img).startswith('[<img alt="*****"'):
-                        scraper_temp_output.append({'rank': 2,
-                                                    'words': str(img)[_l_trim:-_r_trim].split()})
+                                                    'words': str(strong)[_l_trim:-_r_trim].split()})
 
-                for sto in scraper_temp_output:
-                    for i_word in sto.get('words'):
-                        word = _replace_all(str(i_word).lower())
+                    else:
+                        _r_trim = len(str(img)) - str(img).rfind(_r_substring_to_trim_from)
+                        _l_trim = str(img).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
+                        if img and str(img).startswith('[<img alt="*"'):
+                            scraper_temp_output.append({'rank': -2,
+                                                        'words': str(img)[_l_trim:-_r_trim].split()})
+                        elif img and str(img).startswith('[<img alt="**"'):
+                            scraper_temp_output.append({'rank': -1,
+                                                        'words': str(img)[_l_trim:-_r_trim].split()})
+                        elif img and str(img).startswith('[<img alt="***"'):
+                            scraper_temp_output.append({'rank': 1,
+                                                        'words': str(img)[_l_trim:-_r_trim].split()})
+                        elif img and str(img).startswith('[<img alt="****"'):
+                            scraper_temp_output.append({'rank': 2,
+                                                        'words': str(img)[_l_trim:-_r_trim].split()})
+                        elif img and str(img).startswith('[<img alt="*****"'):
+                            scraper_temp_output.append({'rank': 2,
+                                                        'words': str(img)[_l_trim:-_r_trim].split()})
+
+                    for sto in scraper_temp_output:
+                        for i_word in sto.get('words'):
+                            word = _replace_all(str(i_word).lower())
+                            rank = str(sto.get('rank'))
+                            SCRAPER_FINAL_OUTPUT.append(word + ' ' + rank)
+                # else store the scraped values as full review - review rank pairs
+                # optimized for writing .csv output file, line example "review",-1
+                else:
+                    if strong and str(strong).startswith('[<strong class="rating">odpad!</strong>'):
+                        _r_trim = len(str(strong)) - str(strong).rfind(_r_substring_to_trim_from)
+                        _l_trim = str(strong).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
+                        scraper_temp_output.append({'rank': -2,
+                                                    'review': str(strong)[_l_trim:-_r_trim]})
+
+                    else:
+                        _r_trim = len(str(img)) - str(img).rfind(_r_substring_to_trim_from)
+                        _l_trim = str(img).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
+                        if img and str(img).startswith('[<img alt="*"'):
+                            scraper_temp_output.append({'rank': -2,
+                                                        'review': str(img)[_l_trim:-_r_trim]})
+                        elif img and str(img).startswith('[<img alt="**"'):
+                            scraper_temp_output.append({'rank': -1,
+                                                        'review': str(img)[_l_trim:-_r_trim]})
+                        elif img and str(img).startswith('[<img alt="***"'):
+                            scraper_temp_output.append({'rank': 1,
+                                                        'review': str(img)[_l_trim:-_r_trim]})
+                        elif img and str(img).startswith('[<img alt="****"'):
+                            scraper_temp_output.append({'rank': 2,
+                                                        'review': str(img)[_l_trim:-_r_trim]})
+                        elif img and str(img).startswith('[<img alt="*****"'):
+                            scraper_temp_output.append({'rank': 2,
+                                                        'review': str(img)[_l_trim:-_r_trim]})
+
+                    for sto in scraper_temp_output:
+                        i_review = sto.get('review')
+                        review = _replace_all(str(i_review).lower().lstrip(" "))
                         rank = str(sto.get('rank'))
-                        SCRAPER_FINAL_OUTPUT.append(word + ' ' + rank)
+                        SCRAPER_FINAL_OUTPUT.append('"' + review + '"' + ',' + rank)
 
             print(f'{datetime.datetime.now()} finished scraping {url}')
         else:
@@ -178,7 +221,7 @@ if __name__ == "__main__":
                 print('%r generated an exception: %s' % (url, exc))
 
     # write to temp_file_bck1.txt the scraped movie review data
-    with open('./common/bag_of_words.txt', 'w', encoding='utf8') as fw:
+    with open(OUTPUT_FILE_PATH, 'w', encoding='utf8') as fw:
         for item in SCRAPER_FINAL_OUTPUT:
             fw.write(item + '\n')
 

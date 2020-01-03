@@ -64,10 +64,6 @@ def read_valence_file(level):
                                                     "word_valence_mean_approach/data_output/"
                                                     "big_czech_words_list_w_word_valence.txt")
 
-    elif level == "full":
-        valence_file = _read_valence_file_generator("../data_preparation/"
-                                                    "word_valence_mean_approach/data_output/"
-                                                    "bag_of_words_list_w_word_valence.txt")
 
     else:
         raise FileNotFoundError
@@ -77,7 +73,7 @@ def read_valence_file(level):
         term, score = line.split()
         scores[term] = float(score)
 
-    LOGGER.info('file with word and corresponding valence pairs loaded successfully')
+    LOGGER.info('File with word and corresponding valence pairs loaded successfully')
 
     return scores.items()
 
@@ -119,7 +115,7 @@ def get_sentiment(prepared_args):
                                                   'sentiment_value': round(item[1], 2),
                                                   'fuzzy_ratio': ratio,
                                                   'fuzzy_matched_word': item[0]})
-                        break
+                        break #TODO choose the word with the highest ratio from the words fuzzy matched,remove break
                 else:
                     pass
 

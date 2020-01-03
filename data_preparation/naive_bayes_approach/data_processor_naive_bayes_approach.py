@@ -5,12 +5,12 @@ import datetime
 import pandas as pd
 from sklearn.model_selection import train_test_split
 #from sklearn.feature_extraction.text import CountVectorizer
-#from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import SMOTE
 from sklearn.naive_bayes import MultinomialNB
 
 
 CZECH_STOPWORDS_FILE_PATH = '../czech_stopwords.txt'
-TEMP_FILE_PATH = '../bag_of_words.txt'
+TEMP_FILE_PATH = '../bag_of_words_small.txt'
 OUTPUT_FILE_PATH = '../naive_bayes_approach/data_output/bag_of_words_output.txt'
 
 INPUT_WORDS = []
@@ -53,6 +53,7 @@ def word_valence_calculator():
             if len(tfg) == 2:
                 TEMP_FILE_WORDS.append(tfg)
 
+    # print(TEMP_FILE_WORDS)
     df_temp_file = pd.DataFrame(TEMP_FILE_WORDS, columns=['word', 'bsent'])
     # print(df_temp_file)
     print(df_temp_file.head())
@@ -79,7 +80,8 @@ def word_valence_calculator():
     print(f'{datetime.datetime.now()} step #2 completed')
 
     nb = MultinomialNB()
-
+    print(X_train)
+    print(y_train)
     nb.fit(X_train, y_train)
 
     nb.score(X_train, y_train)

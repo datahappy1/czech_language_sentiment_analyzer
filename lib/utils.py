@@ -11,7 +11,7 @@ def _replace_all(text):
     """
     replacements = {'"': '', '.': '', '(': '', ')': '', ',': '',
                     '-': '', '?': '', '!': '', ':': '', '/': '',
-                    }
+                    '„': '' , '<strong>': ''}
 
     for i, j in replacements.items():
         text = text.replace(i, j)
