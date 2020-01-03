@@ -38,6 +38,8 @@ další
 design
 dnes
 do
+dva
+dvou
 email
 fakt
 ho
@@ -91,6 +93,7 @@ kteří
 kterou
 ktery
 který
+oč
 ma
 má
 mate
@@ -188,6 +191,7 @@ taky
 tato
 tam
 tedy
+ten
 té
 teď
 tema
@@ -234,6 +238,7 @@ vice
 více
 vsak
 však
+vše
 z
 za
 zda

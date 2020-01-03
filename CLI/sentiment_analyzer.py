@@ -91,41 +91,35 @@ def get_sentiment(prepared_args):
     _read_czech_stopwords("../data_preparation/czech_stopwords.txt")
 
     valence_file = read_valence_file(prepared_args['level'])
-    words = prepared_args['string'].split()
+    words_raw = prepared_args['string'].split()
+    words = [_replace_all(word).lower() for word in words_raw]
     fuzzy = prepared_args['fuzzy']
-    fuzzy_threshold = 0
-    if fuzzy:
-        if prepared_args['level'] == "naivebayes":
-            fuzzy_threshold = 60
-        elif prepared_args['level'] == "affin111":
-            fuzzy_threshold = 60
-        elif prepared_args['level'] == "small":
-            fuzzy_threshold = 60
-        elif prepared_args['level'] == "big":
-            fuzzy_threshold = 70
-        elif prepared_args['level'] == "full":
-            fuzzy_threshold = 80
+    fuzzy_ratio = prepared_args['ratio']
+
     sentiment_value = 0.0
     sentiment_details = []
+
     _match_counter = 0
 
     for word in words:
         if word not in CZECH_STOPWORDS:
             for item in valence_file:
-                if _replace_all(word.lower()) in item:
+                if word == item[0]:
                     _match_counter += 1
                     sentiment_value += item[1]
                     sentiment_details.append({'word': word,
                                               'sentiment_value': round(item[1], 2)})
+                    break
                 elif fuzzy is True:
-                    ratio = fuzz.ratio(_replace_all(word.lower()), item)
-                    if ratio > fuzzy_threshold:
+                    ratio = fuzz.ratio(word, item[0])
+                    if ratio > fuzzy_ratio:
                         _match_counter += 1
                         sentiment_value += item[1]
                         sentiment_details.append({'word': word,
                                                   'sentiment_value': round(item[1], 2),
                                                   'fuzzy_ratio': ratio,
                                                   'fuzzy_matched_word': item[0]})
+                        break
                 else:
                     pass
 
@@ -156,14 +150,16 @@ def prepare_args():
     parser.add_argument('-string', '--inputstring', type=str, required=True)
     parser.add_argument('-atype', '--algorithmtype', type=str, required=True,
                         choices=['naivebayes', 'small', 'big', 'full'])
-    parser.add_argument('-fuzzy', '--fuzzymatch', type=str, required=False, default=False)
+    parser.add_argument('-fuzzy', '--fuzzymatch', type=bool, required=False, default=False)
+    parser.add_argument('-ratio', '--fuzzyratio', type=int, required=False, default=80)
     parsed = parser.parse_args()
 
     string = parsed.inputstring
-    level = parsed.depthlevel
+    atype = parsed.algorithmtype
     fuzzy = parsed.fuzzymatch
+    fuzzy_ratio = parsed.fuzzyratio
     # arg parse bool data type known bug workaround
-    if fuzzy.lower() in ('no', 'false', 'f', 'n', '0'):
+    if str(fuzzy).lower() in ('no', 'false', 'f', 'n', '0'):
         fuzzy = False
     else:
         fuzzy = True
@@ -171,8 +167,9 @@ def prepare_args():
     LOGGER.info('arguments parsed successfully')
 
     return {'string': string,
-            'level': level,
-            'fuzzy': fuzzy}
+            'level': atype,
+            'fuzzy': fuzzy,
+            'ratio': fuzzy_ratio}
 
 
 if __name__ == '__main__':

@@ -4,10 +4,12 @@ data processor
 import datetime
 import pandas as pd
 from sklearn.model_selection import train_test_split
+#from sklearn.feature_extraction.text import CountVectorizer
+#from imblearn.over_sampling import SMOTE
+from sklearn.naive_bayes import MultinomialNB
 
 
 CZECH_STOPWORDS_FILE_PATH = '../czech_stopwords.txt'
-# INPUT_FILE_PATH = './word_valence_mean_approach/data_input/big_czech_words_list.txt'
 TEMP_FILE_PATH = '../bag_of_words.txt'
 OUTPUT_FILE_PATH = '../naive_bayes_approach/data_output/bag_of_words_output.txt'
 
@@ -52,9 +54,35 @@ def word_valence_calculator():
                 TEMP_FILE_WORDS.append(tfg)
 
     df_temp_file = pd.DataFrame(TEMP_FILE_WORDS, columns=['word', 'bsent'])
-    print(df_temp_file)
+    # print(df_temp_file)
+    print(df_temp_file.head())
+
+    #Todo value counts not well distributed :
+    #1 : 1714348
+    #-1 : 457699
+    print(df_temp_file.bsent.value_counts())
+
+    X = df_temp_file.word
+    y = df_temp_file.bsent
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    #
+    # vect = CountVectorizer(max_features=1000, binary=True)
+    #
+    # X_train_vect = vect.fit_transform(X_train)
+
+    counts = df_temp_file.bsent.value_counts()
+    print(counts)
+
+    print("\nPredicting only -1 = {:.2f}% accuracy".format(counts[-1] / sum(counts) * 100))
+
 
     print(f'{datetime.datetime.now()} step #2 completed')
+
+    nb = MultinomialNB()
+
+    nb.fit(X_train, y_train)
+
+    nb.score(X_train, y_train)
 
     # 3 read input file line by line through it's generator
     # in case it cannot fit into memory at once and load the values

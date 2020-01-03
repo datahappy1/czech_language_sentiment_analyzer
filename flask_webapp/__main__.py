@@ -31,20 +31,34 @@ def main():
         return render_template('index.html', template_sentiment_result=None)
 
     elif request.method == 'POST':
+        sentiment_result = []
+
         input_text = request.form.get('InputText')
+        fuzzy = bool(request.form.get('FuzzyMatch'))
+        fuzzy_ratio = int(request.form.get('iFuzzyratio'))
         algorithm_type = request.form.get('AlgorithmTypeSelect')
-        fuzzy = request.form.get('FuzzyMatch')
 
-        prepared_args = {'string': input_text,
-                         'level': algorithm_type,
-                         'fuzzy': (True if fuzzy else False)}
+        if algorithm_type == 'all':
+            for algorithm in ['small', 'big', 'full', 'affin111']: #TODO add 'naivebayes'
+                prepared_args = {'string': input_text,
+                                 'level': algorithm,
+                                 'fuzzy': fuzzy,
+                                 'ratio': fuzzy_ratio}
+                sentiment_result.append(get_sentiment(prepared_args))
 
-        sentiment_result = get_sentiment(prepared_args)
+        else:
+            prepared_args = {'string': input_text,
+                             'level': algorithm_type,
+                             'fuzzy': fuzzy,
+                             'ratio': fuzzy_ratio}
+
+            sentiment_result.append(get_sentiment(prepared_args))
 
         return render_template('index.html',
                                template_input_string=input_text,
                                template_algorithm_type=algorithm_type,
-                               template_fuzzy=(True if fuzzy else False),
+                               template_fuzzy=fuzzy,
+                               template_fuzzy_ratio=fuzzy_ratio,
                                template_sentiment_result=sentiment_result)
 
 
