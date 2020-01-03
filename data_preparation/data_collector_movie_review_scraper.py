@@ -65,11 +65,10 @@ def movie_review_url_collector():
         page = requests.get(start_page, headers=Anonymize.randomize_request_headers(obj))
         soup = BeautifulSoup(page.content, 'html.parser')
         movie_review_url = soup.find_all('td', attrs={'class': 'film'})
-        for url_item in movie_review_url[:1]:
+        for url_item in movie_review_url[:300]:
             children = url_item.findChildren("a", recursive=False)
             movie_name = str(children).split("/")[2]
-            for random_index in ([2]):
-            #for random_index in ([2, 3, 4, 5, 6, 7]):
+            for random_index in ([2, 3, 4, 5, 6, 7]):
                 review_page = str(random_index)
                 MOVIE_REVIEW_URLS.append('https://www.csfd.cz/film/{}/komentare/strana-{}'.
                                          format(movie_name, review_page))
