@@ -1,7 +1,6 @@
 requests
 bs4
 pandas
-sklearn
 python-Levenshtein
 fuzzywuzzy
 flask==1.1.1

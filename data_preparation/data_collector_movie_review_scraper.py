@@ -11,6 +11,7 @@ import urllib3
 import requests
 from lib.utils import _replace_all
 
+#TODO make scraper write only to csv using import csv and store as full review-rank only
 
 # Set SPLIT_SCRAPED_VALUES to True if you wish to store to SCRAPER_FINAL_OUTPUT dict
 # each word and corresponding movie review rank separately
