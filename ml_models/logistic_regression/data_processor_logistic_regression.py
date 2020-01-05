@@ -54,8 +54,8 @@ def logistic_regression():
             if tfg[0] not in CZECH_STOPWORDS:
                 temp_file_review_work.append(tfg)
 
-        temp_file_review_work = [x for x in temp_file_review_work if x[1] == 'neg'][:14000] + \
-                             [x for x in temp_file_review_work if x[1] == 'pos'][:14000]
+    temp_file_review_work = [x for x in temp_file_review_work if x[1] == 'neg'][:14000] + \
+                         [x for x in temp_file_review_work if x[1] == 'pos'][:14000]
 
     random.shuffle(temp_file_review_work)
     # print(TEMP_FILE_REVIEWS_WORK[:10])
