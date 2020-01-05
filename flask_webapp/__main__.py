@@ -2,13 +2,33 @@
 __main__.py
 """
 import os
+import pickle
 from flask import Flask, render_template, send_from_directory, request
 from waitress import serve
-from CLI.sentiment_analyzer import get_sentiment
 
 APP = Flask(__name__)
 
+VECTOR = pickle.load(open('../ml_models/logistic_regression/vectorizer.pkl', 'rb'))
+MODEL = pickle.load(open('../ml_models/logistic_regression/model.pkl', 'rb'))
+
 THREADS_COUNT = 4
+
+
+def _ml_model_evaluator(input_string):
+    """
+
+    :param input_string:
+    :return:
+    """
+    prediction = MODEL.predict(VECTOR.transform(input_string))
+    if prediction[0] == 'neg':
+        prediction_output = 'negativní - negative'
+    elif prediction[0] == 'pos':
+        prediction_output = 'positivní - positive'
+    else:
+        prediction_output = 'neznámý - unknown'
+
+    return prediction_output
 
 
 @APP.route('/favicon.ico')
@@ -28,37 +48,14 @@ def main():
     :return:
     """
     if request.method == 'GET':
-        return render_template('index.html', template_sentiment_result=None)
+        return render_template('index.html')
 
     elif request.method == 'POST':
-        sentiment_result = []
-
         input_text = request.form.get('InputText')
-        fuzzy = bool(request.form.get('FuzzyMatch'))
-        fuzzy_ratio = int(request.form.get('iFuzzyratio'))
-        algorithm_type = request.form.get('AlgorithmTypeSelect')
-
-        if algorithm_type == 'all':
-            for algorithm in ['small', 'big', 'affin111']: #TODO add 'naivebayes'
-                prepared_args = {'string': input_text,
-                                 'level': algorithm,
-                                 'fuzzy': fuzzy,
-                                 'ratio': fuzzy_ratio}
-                sentiment_result.append(get_sentiment(prepared_args))
-
-        else:
-            prepared_args = {'string': input_text,
-                             'level': algorithm_type,
-                             'fuzzy': fuzzy,
-                             'ratio': fuzzy_ratio}
-
-            sentiment_result.append(get_sentiment(prepared_args))
+        sentiment_result = _ml_model_evaluator([input_text])
 
         return render_template('index.html',
                                template_input_string=input_text,
-                               template_algorithm_type=algorithm_type,
-                               template_fuzzy=fuzzy,
-                               template_fuzzy_ratio=fuzzy_ratio,
                                template_sentiment_result=sentiment_result)
 
 
@@ -69,6 +66,15 @@ def api():
     :return:
     """
     return render_template('api.html')
+
+
+@APP.route('/methodology', methods=['GET'])
+def methodology():
+    """
+    the route rendering API documentation
+    :return:
+    """
+    return render_template('methodology.html')
 
 
 if __name__ == "__main__":

@@ -1,14 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Czech language sentiment analyzer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Czech language sentiment analyzer ©Datahappy 2019</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
           crossorigin="anonymous">
 </head>
 <body>
+
+    <nav class="navbar navbar-dark bg-dark">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="{{ url_for('main') }}">Analyzátor českého textového sentimentu - Czech language sentiment analyzer</a>
+        </div>
+        <ul class="nav navbar-nav">
+            <li class="active"><a href="{{ url_for('main') }}">Domů - Home</a></li>
+            <li><a href="{{ url_for('api') }}">API</a></li>
+            <li><a href="{{ url_for('methodology') }}">Metodika - Methodology</a></li>
+            <li><a href="https://datahappy.wordpress.com/contact/" target="_blank">Kontakt - Contact</a></li>
+        </ul>
+      </div>
+    </nav>
+
     {% block content %}
     {% endblock %}
+
 </body>
 </html>

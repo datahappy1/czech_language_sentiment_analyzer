@@ -13,113 +13,35 @@ function closeResultDiv() {
     }
 }
 
-function toggleRatioRange() {
-  // Get the checkbox
-  var checkBox = document.getElementById("FuzzyMatch");
-  // Get the output text
-  var output = document.getElementById("oratio");
-  var label = document.getElementById("lFuzzyratio");
-  var text = document.getElementById("formControlRange");
-  // If the checkbox is checked, display the output text
-  if (checkBox.checked == true){
-    text.style.display = "block";
-    label.style.display = "block";
-    output.style.display = "block";
-  } else {
-    text.style.display = "none";
-    label.style.display = "none";
-    output.style.display = "none";
-  }
-}
-
-
 </script>
-
-<nav class="navbar navbar-expand-lg navbar-light bg-primary">
-    <a class="navbar-brand" href="{{ url_for('main') }}">Czech language sentiment analyzer</a>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="nav navbar-nav ml-auto">
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('api') }}">API</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('api') }}">About</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('api') }}">Contact</a></li>
-        </ul>
-    </div>
-</nav>
 
 <div class="container-fluid">
 
     {% if template_sentiment_result %}
-    <label for="newpost"></label>
-    <div id="newpost" class="alert alert-dark" role="alert">
-        <button type="button" class="close" aria-label="Close" onclick="closeResultDiv();">
-            <span aria-hidden="true">&times;</span>
-        </button>
 
-        {% for result in template_sentiment_result %}
+        <label for="newpost"></label>
+        <div id="newpost"
+             {% if template_sentiment_result =="positive" %}
+                class="alert alert-success"
+             {% else %}
+                class="alert alert-danger"
+             {% endif %}
+        role="alert" >
+            <button type="button" class="close" aria-label="Close" onclick="closeResultDiv();">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            Sentiment: {{ template_sentiment_result }}
+        </div>
 
-        Overall sentiment: <strong> {{ result[0] }} </strong>
-        <ol>
-            {% for res in result[1] %}
-            <li>
-                {{ res.get('word') }} : {{ res.get('sentiment_value') }}
-                {% if res.get('fuzzy_ratio') %}
-                ( fuzzy ratio : {{ res.get('fuzzy_ratio') }} ,
-                fuzzy matched word : {{ res.get('fuzzy_matched_word') }} )
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ol>
-        {% endfor %}
-    </div>
     {% endif %}
-
 
     <form action="{{ url_for('main') }}" method="POST" enctype="multipart/form-data">
         <div class="form-group">
-            <label for="InputText">Input text:</label>
-            <textarea class="form-control" id="InputText" name="InputText" rows="3"
-                      placeholder="Input your text for analysis here...">{{template_input_string}}</textarea>
+            <label for="InputText"></label>
+            <textarea class="form-control" id="InputText" name="InputText" rows="5" maxlength="1000"
+                      placeholder="Vložte text pro analýzu - Input your text for analysis here" required>{{template_input_string}}</textarea>
         </div>
-        <div class="form-group">
-            <label for="AlgorithmTypeSelect">Algorithm type:</label>
-            <select class="form-control" id="AlgorithmTypeSelect" name="AlgorithmTypeSelect">
-                <option value="naivebayes" {% if template_algorithm_type=="naivebayes" %}selected{% endif %}>
-                    Naive Bayes
-                </option>
-                <option value="small" {% if template_algorithm_type=="small" %}selected{% endif %}>
-                    Word valence mean - Dataset of ~2k words with associated valence values generated from scraping of
-                    the Czech movie review database.
-                </option>
-                <option value="big" {% if template_algorithm_type=="big" %}selected{% endif %}>
-                    Word valence mean - Dataset of ~96k words with associated valence values generated from scraping of
-                    the Czech movie review database.
-                </option>
-                <option value="affin111" {% if template_algorithm_type=="affin111" %}selected{% endif %}>
-                    Word valence mean - Dataset of ~2,5k words with associated valence values generated as a translation
-                    from English to Czech of Finn Årup Nielsen's AFINN-111 manually labeled text file.
-                </option>
-                <option value="all" {% if template_algorithm_type=="all" %}selected{% endif %}>
-                    Use all of the algorithms above ( might take some time )
-                </option>
-            </select>
-        </div>
-        <div class="form-group">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="True" id="FuzzyMatch" name="FuzzyMatch"
-                       {%if template_fuzzy %} checked {% endif %} onclick="toggleRatioRange()">
-                <label class="form-check-label" for="FuzzyMatch">
-                    Include Fuzzy match of input text words:
-                </label>
-            </div>
-            <label for="formControlRange" id="lFuzzyratio" {% if not template_fuzzy %} style="display:none" {% endif %}>Fuzzy Ratio :
-                <output name="oFuzzyratio" id="oratio">{% if template_fuzzy_ratio %}{{template_fuzzy_ratio}}{% else %}80{% endif %}</output>
-            </label>
-            <input type="range" class="form-control-range" id="formControlRange" min="60" max="100"
-                   value="{% if template_fuzzy_ratio %}{{template_fuzzy_ratio}}{% else %}80{% endif %}"
-                   name="iFuzzyratio" oninput="oFuzzyratio.value = iFuzzyratio.value" {% if not template_fuzzy %} style="display:none" {% endif %}>
-
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-primary">Odeslat - Submit</button>
     </form>
 
 </div>
