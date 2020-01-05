@@ -58,12 +58,12 @@ def logistic_regression():
                          [x for x in temp_file_review_work if x[1] == 'pos'][:14000]
 
     random.shuffle(temp_file_review_work)
-    # print(TEMP_FILE_REVIEWS_WORK[:10])
+    # print(temp_file_review_work[:10])
 
     temp_file_reviews = [x[0] for x in temp_file_review_work]
     temp_file_class = [x[1] for x in temp_file_review_work]
-    # print(TEMP_FILE_REVIEWS[:10])
-    # print(TEMP_FILE_CLASS[:10])
+    # print(temp_file_reviews[:10])
+    # print(temp_file_class[:10])
 
     train_data_X = temp_file_reviews[:14000]
     train_data_y = temp_file_class[:14000]
