@@ -1,38 +1,21 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<script>
-function closeResultDiv() {
-  // Get the result div
-  var mydiv = document.getElementById('newpost');
-  // change style to none
-  if (mydiv.style.display === 'block' || mydiv.style.display === ''){
-    mydiv.style.display = 'none';}
-  else {
-    mydiv.style.display = 'block'
-    }
-}
-
-</script>
-
 <div class="container-fluid">
 
     {% if template_sentiment_result %}
-
-        <label for="newpost"></label>
-        <div id="newpost"
-             {% if template_sentiment_result =="positivní - positive" %}
-                class="alert alert-success"
-             {% else %}
-                class="alert alert-danger"
-             {% endif %}
-        role="alert" >
-            <button type="button" class="close" aria-label="Close" onclick="closeResultDiv();">
-                <span aria-hidden="true">&times;</span>
-            </button>
-            Sentiment: {{ template_sentiment_result }}
-        </div>
-
+            <label for="result_{{ key }}"></label>
+            {% for key, value in template_sentiment_result.items() %}
+            <div id="result_{{ key }}"
+                 {% if value =="positivní - positive" %}
+                    class="alert alert-success"
+                 {% else %}
+                    class="alert alert-danger"
+                 {% endif %}
+            role="alert" >
+                {{ key }} sentiment: {{ value }}
+            </div>
+        {% endfor %}
     {% endif %}
 
     <form action="{{ url_for('main') }}" method="POST" enctype="multipart/form-data">

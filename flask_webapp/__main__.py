@@ -8,8 +8,10 @@ from waitress import serve
 
 APP = Flask(__name__)
 
-VECTOR = pickle.load(open('../ml_models/logistic_regression/vectorizer.pkl', 'rb'))
-MODEL = pickle.load(open('../ml_models/logistic_regression/model.pkl', 'rb'))
+VECTOR_NB = pickle.load(open('../ml_models/naive_bayes/vectorizer.pkl', 'rb'))
+MODEL_NB = pickle.load(open('../ml_models/naive_bayes/model.pkl', 'rb'))
+VECTOR_LR = pickle.load(open('../ml_models/logistic_regression/vectorizer.pkl', 'rb'))
+MODEL_LR = pickle.load(open('../ml_models/logistic_regression/model.pkl', 'rb'))
 
 THREADS_COUNT = 4
 
@@ -18,15 +20,21 @@ def _ml_model_evaluator(input_string):
     """
 
     :param input_string:
-    :return:
+    :return: prediction_output dict
     """
-    prediction = MODEL.predict(VECTOR.transform(input_string))
-    if prediction[0] == 'neg':
-        prediction_output = 'negativní - negative'
-    elif prediction[0] == 'pos':
-        prediction_output = 'positivní - positive'
-    else:
-        prediction_output = 'neznámý - unknown'
+    prediction_output = dict()
+    prediction_naive_bayes = MODEL_NB.predict(VECTOR_NB.transform(input_string))
+    prediction_logistic_regression = MODEL_LR.predict(VECTOR_LR.transform(input_string))
+
+    if prediction_naive_bayes[0] == 0:
+        prediction_output['naive_bayes'] = 'negativní - negative'
+    elif prediction_naive_bayes[0] == 1:
+        prediction_output['naive_bayes'] = 'positivní - positive'
+
+    if prediction_logistic_regression[0] == 'neg':
+        prediction_output['logistic_regression'] = 'negativní - negative'
+    elif prediction_logistic_regression[0] == 'pos':
+        prediction_output['logistic_regression'] = 'positivní - positive'
 
     return prediction_output
 

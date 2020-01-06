@@ -5,7 +5,6 @@ import random
 import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
-from sklearn import metrics
 
 
 CZECH_STOPWORDS_FILE_PATH = '../../data_preparation/czech_stopwords.txt'
@@ -37,13 +36,11 @@ def _read_czech_stopwords():
     return 0
 
 
-def logistic_regression(input_string):
+def naive_bayes():
     """
     function for training and testing the ML model
     :return:
     """
-    # input_string = [x for x in input_string.split(' ')]
-    input_string = [input_string]
     temp_file_review_work = []
 
     temp_file_gen = _read_temp_file_generator()
@@ -85,14 +82,13 @@ def logistic_regression(input_string):
 
     predictions = nb.predict(X_test)
     # print([x for x in y_test])
-    fpr, tpr, thresholds = metrics.roc_curve([x for x in y_test], predictions, pos_label=1)
-    print("Multinomial naive bayes AUC: {0}".format(metrics.auc(fpr, tpr)))
+    # fpr, tpr, thresholds = metrics.roc_curve([x for x in y_test], predictions, pos_label=1)
+    # print("Multinomial naive bayes AUC: {0}".format(metrics.auc(fpr, tpr)))
 
-    xv = nb.predict(vect.transform(input_string))
-    print(xv)
+    # xv = nb.predict(vect.transform(input_string))
+    # print(xv)
 
-    # pickle.dump(vect, open('vectorizer.pkl', 'wb'))
-    # pickle.dump(lr, open('model.pkl','wb'))
-
-
-logistic_regression(input_string='skvely film super')
+    # input_string = ["some input string of czech text"]
+    # print("prediction: {}". format(nb.predict(vect.transform(input_string))))
+    pickle.dump(vect, open('vectorizer.pkl', 'wb'))
+    pickle.dump(nb, open('model.pkl','wb'))
