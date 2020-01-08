@@ -5,8 +5,11 @@ import os
 import pickle
 from flask import Flask, render_template, send_from_directory, request
 from waitress import serve
+from utils.utils import _read_czech_stopwords
+
 
 APP = Flask(__name__)
+APP.config['czech_stopwords'] = _read_czech_stopwords()
 
 VECTOR_NB = pickle.load(open('../ml_models/naive_bayes/vectorizer.pkl', 'rb'))
 MODEL_NB = pickle.load(open('../ml_models/naive_bayes/model.pkl', 'rb'))
@@ -60,8 +63,14 @@ def main():
 
     elif request.method == 'POST':
         input_text = request.form.get('InputText')
-        sentiment_result = _ml_model_evaluator([input_text])
+        input_text_list = input_text.split(' ')
 
+        for itf in input_text_list:
+            if str(itf).lower() in APP.config['czech_stopwords']:
+                input_text_list.remove(itf)
+
+        input_text_list = ' '.join(input_text_list)
+        sentiment_result = _ml_model_evaluator([input_text_list])
         return render_template('index.html',
                                template_input_string=input_text,
                                template_sentiment_result=sentiment_result)

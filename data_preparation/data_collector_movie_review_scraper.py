@@ -9,15 +9,11 @@ import datetime
 from bs4 import BeautifulSoup
 import urllib3
 import requests
-from lib.utils import _replace_all
+from utils.utils import _replace_all
+
 
 #TODO make scraper write only to csv using import csv and store as full review-rank only
 
-# Set SPLIT_SCRAPED_VALUES to True if you wish to store to SCRAPER_FINAL_OUTPUT dict
-# each word and corresponding movie review rank separately
-# If SPLIT_SCRAPED_VALUES set to False, the full review and the corresponding
-# movie review rank will get stored in the SCRAPER_FINAL_OUTPUT dict
-SPLIT_SCRAPED_VALUES = False
 OUTPUT_FILE_PATH = 'reviews_with_ranks.csv'
 SCRAPER_FINAL_OUTPUT = []
 MOVIE_REVIEW_URLS = []
@@ -127,72 +123,36 @@ def movie_review_scraper(url_to_scrape):
                 strong = soup_item.findChildren(["strong", "p"],
                                                 attrs={'class': ['rating', 'post']})
 
-                # store the scraped values as review split by words review rank pairs
-                # optimized for writing a txt file , line example: word -1
-                if SPLIT_SCRAPED_VALUES:
-                    if strong and str(strong).startswith('[<strong class="rating">odpad!</strong>'):
-                        _r_trim = len(str(strong)) - str(strong).rfind(_r_substring_to_trim_from)
-                        _l_trim = str(strong).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
-                        scraper_temp_output.append({'rank': -2,
-                                                    'words': str(strong)[_l_trim:-_r_trim].split()})
+                if strong and str(strong).startswith('[<strong class="rating">odpad!</strong>'):
+                    _r_trim = len(str(strong)) - str(strong).rfind(_r_substring_to_trim_from)
+                    _l_trim = str(strong).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
+                    scraper_temp_output.append({'rank': -2,
+                                                'review': str(strong)[_l_trim:-_r_trim]})
 
-                    else:
-                        _r_trim = len(str(img)) - str(img).rfind(_r_substring_to_trim_from)
-                        _l_trim = str(img).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
-                        if img and str(img).startswith('[<img alt="*"'):
-                            scraper_temp_output.append({'rank': -2,
-                                                        'words': str(img)[_l_trim:-_r_trim].split()})
-                        elif img and str(img).startswith('[<img alt="**"'):
-                            scraper_temp_output.append({'rank': -1,
-                                                        'words': str(img)[_l_trim:-_r_trim].split()})
-                        elif img and str(img).startswith('[<img alt="***"'):
-                            scraper_temp_output.append({'rank': 1,
-                                                        'words': str(img)[_l_trim:-_r_trim].split()})
-                        elif img and str(img).startswith('[<img alt="****"'):
-                            scraper_temp_output.append({'rank': 2,
-                                                        'words': str(img)[_l_trim:-_r_trim].split()})
-                        elif img and str(img).startswith('[<img alt="*****"'):
-                            scraper_temp_output.append({'rank': 2,
-                                                        'words': str(img)[_l_trim:-_r_trim].split()})
-
-                    for sto in scraper_temp_output:
-                        for i_word in sto.get('words'):
-                            word = _replace_all(str(i_word).lower())
-                            rank = str(sto.get('rank'))
-                            SCRAPER_FINAL_OUTPUT.append(word + ' ' + rank)
-                # else store the scraped values as full review - review rank pairs
-                # optimized for writing .csv output file, line example "review",-1
                 else:
-                    if strong and str(strong).startswith('[<strong class="rating">odpad!</strong>'):
-                        _r_trim = len(str(strong)) - str(strong).rfind(_r_substring_to_trim_from)
-                        _l_trim = str(strong).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
+                    _r_trim = len(str(img)) - str(img).rfind(_r_substring_to_trim_from)
+                    _l_trim = str(img).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
+                    if img and str(img).startswith('[<img alt="*"'):
                         scraper_temp_output.append({'rank': -2,
-                                                    'review': str(strong)[_l_trim:-_r_trim]})
+                                                    'review': str(img)[_l_trim:-_r_trim]})
+                    elif img and str(img).startswith('[<img alt="**"'):
+                        scraper_temp_output.append({'rank': -1,
+                                                    'review': str(img)[_l_trim:-_r_trim]})
+                    elif img and str(img).startswith('[<img alt="***"'):
+                        scraper_temp_output.append({'rank': 1,
+                                                    'review': str(img)[_l_trim:-_r_trim]})
+                    elif img and str(img).startswith('[<img alt="****"'):
+                        scraper_temp_output.append({'rank': 2,
+                                                    'review': str(img)[_l_trim:-_r_trim]})
+                    elif img and str(img).startswith('[<img alt="*****"'):
+                        scraper_temp_output.append({'rank': 2,
+                                                    'review': str(img)[_l_trim:-_r_trim]})
 
-                    else:
-                        _r_trim = len(str(img)) - str(img).rfind(_r_substring_to_trim_from)
-                        _l_trim = str(img).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
-                        if img and str(img).startswith('[<img alt="*"'):
-                            scraper_temp_output.append({'rank': -2,
-                                                        'review': str(img)[_l_trim:-_r_trim]})
-                        elif img and str(img).startswith('[<img alt="**"'):
-                            scraper_temp_output.append({'rank': -1,
-                                                        'review': str(img)[_l_trim:-_r_trim]})
-                        elif img and str(img).startswith('[<img alt="***"'):
-                            scraper_temp_output.append({'rank': 1,
-                                                        'review': str(img)[_l_trim:-_r_trim]})
-                        elif img and str(img).startswith('[<img alt="****"'):
-                            scraper_temp_output.append({'rank': 2,
-                                                        'review': str(img)[_l_trim:-_r_trim]})
-                        elif img and str(img).startswith('[<img alt="*****"'):
-                            scraper_temp_output.append({'rank': 2,
-                                                        'review': str(img)[_l_trim:-_r_trim]})
-
-                    for sto in scraper_temp_output:
-                        i_review = sto.get('review')
-                        review = _replace_all(str(i_review).lower().lstrip(" "))
-                        rank = str(sto.get('rank'))
-                        SCRAPER_FINAL_OUTPUT.append('"' + review + '"' + ',' + rank)
+                for sto in scraper_temp_output:
+                    i_review = sto.get('review')
+                    review = _replace_all(str(i_review).lower().lstrip(" "))
+                    rank = str(sto.get('rank'))
+                    SCRAPER_FINAL_OUTPUT.append('"' + review + '"' + ',' + rank)
 
             print(f'{datetime.datetime.now()} finished scraping {url}')
         else:

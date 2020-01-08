@@ -8,11 +8,10 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
 import mglearn
+from utils.utils import _read_czech_stopwords
 
 
-CZECH_STOPWORDS_FILE_PATH = '../../data_preparation/czech_stopwords.txt'
 TEMP_FILE_PATH = '../../data_preparation/reviews_with_ranks.csv'
-CZECH_STOPWORDS = []
 
 
 def _read_temp_file_generator():
@@ -28,17 +27,6 @@ def _read_temp_file_generator():
             yield '#NA'
 
 
-def _read_czech_stopwords():
-    """
-    function reading czech stopwords file and storing it to a list
-    :return:0 on success
-    """
-    with open(CZECH_STOPWORDS_FILE_PATH, 'r', encoding='utf8') as stop_word_file:
-        for line in stop_word_file:
-            CZECH_STOPWORDS.append(line[:-1])
-    return 0
-
-
 def logistic_regression():
     """
     function for training and testing the ML model
@@ -47,11 +35,11 @@ def logistic_regression():
     temp_file_review_work = []
 
     temp_file_gen = _read_temp_file_generator()
-    _read_czech_stopwords()
+    czech_stopwords = _read_czech_stopwords()
 
     for tfg in temp_file_gen:
         if len(tfg) == 2:
-            if tfg[0] not in CZECH_STOPWORDS:
+            if tfg[0] not in czech_stopwords:
                 temp_file_review_work.append(tfg)
 
     temp_file_review_work = [x for x in temp_file_review_work if x[1] == 'neg'][:14000] + \
