@@ -3,6 +3,7 @@ data collector
 """
 from random import randint
 from time import sleep
+import csv
 import re
 import concurrent.futures
 import datetime
@@ -10,9 +11,6 @@ from bs4 import BeautifulSoup
 import urllib3
 import requests
 from utils.utils import _replace_all
-
-
-#TODO make scraper write only to csv using import csv and store as full review-rank only
 
 OUTPUT_FILE_PATH = 'reviews_with_ranks.csv'
 SCRAPER_FINAL_OUTPUT = []
@@ -151,8 +149,8 @@ def movie_review_scraper(url_to_scrape):
                 for sto in scraper_temp_output:
                     i_review = sto.get('review')
                     review = _replace_all(str(i_review).lower().lstrip(" "))
-                    rank = str(sto.get('rank'))
-                    SCRAPER_FINAL_OUTPUT.append('"' + review + '"' + ',' + rank)
+                    rank = sto.get('rank')
+                    SCRAPER_FINAL_OUTPUT.append((review, rank))
 
             print(f'{datetime.datetime.now()} finished scraping {url}')
         else:
@@ -180,9 +178,9 @@ if __name__ == "__main__":
             except Exception as exc:
                 print('%r generated an exception: %s' % (url, exc))
 
-    # write to temp_file_bck1.txt the scraped movie review data
-    with open(OUTPUT_FILE_PATH, 'w', encoding='utf8') as fw:
-        for item in SCRAPER_FINAL_OUTPUT:
-            fw.write(item + '\n')
+    # write to OUTPUT_FILE_PATH csv file the scraped movie review data
+    with open(OUTPUT_FILE_PATH, 'w', encoding='utf8', newline='\n') as fw:
+        writer = csv.writer(fw, escapechar='/', quoting=csv.QUOTE_NONNUMERIC)
+        writer.writerows(SCRAPER_FINAL_OUTPUT)
 
     print("Movie review data collection phase complete.")
