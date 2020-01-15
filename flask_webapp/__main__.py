@@ -9,7 +9,8 @@ from utils.utils import _read_czech_stopwords
 
 
 APP = Flask(__name__)
-APP.config['czech_stopwords'] = _read_czech_stopwords()
+APP.config['czech_stopwords'] = _read_czech_stopwords(czech_stopwords_file_path=
+                                                      '../data_preparation/czech_stopwords.txt')
 
 VECTOR_NB = pickle.load(open('../ml_models/naive_bayes/vectorizer.pkl', 'rb'))
 MODEL_NB = pickle.load(open('../ml_models/naive_bayes/model.pkl', 'rb'))
