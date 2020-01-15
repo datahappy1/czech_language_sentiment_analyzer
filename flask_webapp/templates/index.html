@@ -16,7 +16,9 @@
                 {{ key }} sentiment: {{ value }}
             </div>
         {% endfor %}
-    {% else %}
+    {% endif %}
+
+    {% if template_error_message %}
         <label for="error_message"></label>
         <div id="error_message" class="alert alert-danger">{{ template_error_message }}</div>
     {% endif %}
