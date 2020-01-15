@@ -64,16 +64,20 @@ def main():
     elif request.method == 'POST':
         input_text = request.form.get('InputText')
         input_text_list = input_text.split(' ')
+        input_text_list = [x for x in input_text_list if x not in APP.config['czech_stopwords']
+                           and x!='']
 
-        for itf in input_text_list:
-            if str(itf).lower() in APP.config['czech_stopwords']:
-                input_text_list.remove(itf)
+        if len(input_text_list) < 2:
+            return render_template('index.html',
+                                   template_input_string=input_text,
+                                   template_error_message="More words for analysis needed")
 
-        input_text_list = ' '.join(input_text_list)
-        sentiment_result = _ml_model_evaluator([input_text_list])
-        return render_template('index.html',
-                               template_input_string=input_text,
-                               template_sentiment_result=sentiment_result)
+        else:
+            input_text_list = ' '.join(input_text_list)
+            sentiment_result = _ml_model_evaluator([input_text_list])
+            return render_template('index.html',
+                                   template_input_string=input_text,
+                                   template_sentiment_result=sentiment_result)
 
 
 @APP.route('/API', methods=['GET'])

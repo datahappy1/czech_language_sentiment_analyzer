@@ -16,6 +16,9 @@
                 {{ key }} sentiment: {{ value }}
             </div>
         {% endfor %}
+    {% else %}
+        <label for="error_message"></label>
+        <div id="error_message" class="alert alert-danger">{{ template_error_message }}</div>
     {% endif %}
 
     <form action="{{ url_for('main') }}" method="POST" enctype="multipart/form-data">
