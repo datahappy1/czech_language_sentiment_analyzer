@@ -23,7 +23,7 @@ API_PREFIX = '/api/v1/'
 
 def _input_string_preparator(input_string):
     """
-
+    function for input string preparation
     :param input_string:
     :return:
     """
@@ -35,7 +35,7 @@ def _input_string_preparator(input_string):
 
 def _ml_model_evaluator(input_string):
     """
-
+    function for machine learning model evaluation
     :param input_string:
     :return: prediction_output dict
     """
@@ -64,6 +64,42 @@ def favicon():
     """
     return send_from_directory(os.path.join(APP.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+
+@APP.errorhandler(405)
+def not_allowed(error):
+    """
+    not allowed method error handler function
+    :param error:
+    :return:error html page or api response
+    """
+    if request.path.startswith(API_PREFIX):
+        response = jsonify({
+            'status': 405,
+            'error': str(error),
+            'mimetype': 'application/json'
+        })
+        response.status_code = 405
+        return response
+    return render_template('error_page.html', template_error_message=error)
+
+
+@APP.errorhandler(404)
+def not_found(error):
+    """
+    not found app error handler function
+    :param error:
+    :return:error html page or api response
+    """
+    if request.path.startswith(API_PREFIX):
+        response = jsonify({
+            'status': 404,
+            'error': str(error),
+            'mimetype': 'application/json'
+        })
+        response.status_code = 404
+        return response
+    return render_template('error_page.html', template_error_message=error)
 
 
 @APP.route('/', methods=['GET', 'POST'])
@@ -104,14 +140,23 @@ def api():
         input_text_list = _input_string_preparator(input_text)
 
         if len(input_text_list) < 2:
-            message = "More words for analysis needed"
-            return jsonify(message, 400)
-
+            response = jsonify({
+                'status': 400,
+                'error': 'More words for analysis needed',
+                'mimetype': 'application/json'
+            })
+            response.status_code = 400
+            return response
         else:
             input_text_list = ' '.join(input_text_list)
             sentiment_result = _ml_model_evaluator([input_text_list])
-            message = f"sentiment_result: {sentiment_result}"
-            return jsonify(message, 200)
+            response = jsonify({
+                'status': 200,
+                'sentiment_result': sentiment_result,
+                'mimetype': 'application/json'
+            })
+            response.status_code = 200
+            return response
 
 
 @APP.route('/API_DOCS', methods=['GET'])

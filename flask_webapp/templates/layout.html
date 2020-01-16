@@ -20,22 +20,30 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href="{{ url_for('main') }}">Home
+            <li class="nav-item">
+                <a id="main" class="nav-link" href="{{ url_for('main') }}">Home
                     <span class="sr-only">(current)</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('api_docs') }}">API Docs</a>
+                <a id="api_docs" class="nav-link" href="{{ url_for('api_docs') }}">
+                    API Docs
+                </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('methodology') }}">Methodology</a>
+                <a id="methodology" class="nav-link" href="{{ url_for('methodology') }}">
+                    Methodology
+                </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('stats') }}">Stats</a>
+                <a id="stats" class="nav-link" href="{{ url_for('stats') }}">
+                    Stats
+                </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="https://datahappy.wordpress.com/contact/" target="_blank">Contact</a>
+                <a id="contact" class="nav-link" href="https://datahappy.wordpress.com/contact/" target="_blank">
+                    Contact
+                </a>
             </li>
         </ul>
     </div>
@@ -44,6 +52,11 @@
 
 {% block content %}
 {% endblock %}
+
+<script>
+    $(document).ready(function () {
+    $("#{{request.endpoint}}").parent().addClass("active"); })
+</script>
 
 </body>
 </html>
