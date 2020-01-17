@@ -7,7 +7,7 @@
             <label for="result_{{ key }}"></label>
             {% for key, value in template_sentiment_result.items() %}
             <div id="result_{{ key }}"
-                 {% if value =="positivní - positive" %}
+                 {% if value =="positive" %}
                     class="alert alert-success"
                  {% else %}
                     class="alert alert-danger"
