@@ -4,12 +4,12 @@ __main__.py
 import os
 import pickle
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from flask import Flask, render_template, send_from_directory, request, jsonify, g
 from flaskext.markdown import Markdown
 from waitress import serve
 from utils.utils import _read_czech_stopwords, _replace_all
-from database.db_build import DB_FILE_LOC, db_builder
+from flask_webapp.database.db_build import DB_FILE_LOC, db_builder
 
 
 APP = Flask(__name__)
@@ -256,9 +256,9 @@ def stats(period="week"):
 
     # prepare the select stats query argument
     if period == "week":
-        period_from = datetime.today() - timedelta(weeks=1)
+        period_from = date.today() - timedelta(weeks=1)
     elif period == "day":
-        period_from = datetime.today() - timedelta(days=1)
+        period_from = date.today() - timedelta(days=1)
     elif period == "full":
         period_from = datetime.strptime("2020-01-01", '%Y-%m-%d')
     # falls back to 1 day of stats
