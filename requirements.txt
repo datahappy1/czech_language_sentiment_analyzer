@@ -1,5 +1,8 @@
 requests
 bs4
 flask==1.1.1
+flask-markdown
+Flask-Cache
 waitress>=1.4.0
 sklearn
+

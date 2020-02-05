@@ -4,14 +4,13 @@ data processor for logistic regression
 import random
 import pickle
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.model_selection import GridSearchCV
-from sklearn.linear_model import LogisticRegression
-import matplotlib.pyplot as plt
-import mglearn
-from utils.utils import _read_czech_stopwords
+from sklearn import model_selection,linear_model
+from utils.utils import _read_czech_stopwords, _replace_all
 
 
 TEMP_FILE_PATH = '../../data_preparation/reviews_with_ranks.csv'
+CZECH_STOPWORDS_FILE_PATH = '../../data_preparation/czech_stopwords.txt'
+PERSIST_MODEL_TO_FILE = False
 
 
 def _read_temp_file_generator():
@@ -32,65 +31,48 @@ def logistic_regression():
     function for training and testing the ML model
     :return:
     """
-    temp_file_review_work = []
+    temp_file_reviews_work = []
 
     temp_file_gen = _read_temp_file_generator()
-    czech_stopwords = _read_czech_stopwords()
+    czech_stopwords = _read_czech_stopwords(CZECH_STOPWORDS_FILE_PATH)
 
     for tfg in temp_file_gen:
         if len(tfg) == 2:
-            if tfg[0] not in czech_stopwords:
-                temp_file_review_work.append(tfg)
+            if _replace_all(tfg[0]) not in czech_stopwords:
+                temp_file_reviews_work.append((_replace_all(tfg[0].rstrip(' ').lstrip(' ')),tfg[1]))
 
-    temp_file_review_work = [x for x in temp_file_review_work if x[1] == 'neg'][:14000] + \
-                         [x for x in temp_file_review_work if x[1] == 'pos'][:14000]
+    temp_file_reviews_work = [x for x in temp_file_reviews_work if x[1] == 'neg'][:14000] + \
+                         [x for x in temp_file_reviews_work if x[1] == 'pos'][:14000]
 
-    random.shuffle(temp_file_review_work)
-    # print(temp_file_review_work[:10])
+    random.shuffle(temp_file_reviews_work)
 
-    temp_file_reviews = [x[0] for x in temp_file_review_work]
-    temp_file_class = [x[1] for x in temp_file_review_work]
-    # print(temp_file_reviews[:10])
-    # print(temp_file_class[:10])
-
-    train_data_X = temp_file_reviews[:14000]
-    train_data_y = temp_file_class[:14000]
-    test_data_X = temp_file_reviews[14001:28000]
-    test_data_y = temp_file_class[14001:28000]
-    # print(train_data)
-    # print(test_data)
+    Train_X, Test_X, Train_Y, Test_Y = model_selection.train_test_split([x[0] for x in temp_file_reviews_work],
+                                                                        [x[1] for x in temp_file_reviews_work],
+                                                                                       test_size=0.2)
 
     vect = CountVectorizer(min_df=5, ngram_range=(2, 2))
-    X_train = vect.fit(train_data_X).transform(train_data_X)
-    X_test = vect.transform(test_data_X)
-
-    y_train = train_data_y
-    y_test = test_data_y
-
-    # print("Vocabulary size: {}".format(len(vect.vocabulary_)))
-    # print("X_train:\n{}".format(repr(X_train)))
-    # print("X_test: \n{}".format(repr(X_test)))
-
-    # feature_names = vect.get_feature_names()
-    # print("Number of features: {}".format(len(feature_names)))
+    Train_X = vect.fit(Train_X).transform(Train_X)
+    Test_X = vect.transform(Test_X)
 
     param_grid = {'C': [0.001, 0.01, 0.1, 1, 10]}
-    grid = GridSearchCV(LogisticRegression(max_iter=1000), param_grid, cv=5)
-    grid.fit(X_train, y_train)
-
-    # print("Best cross-validation score: {:.2f}".format(grid.best_score_))
-    # print("Best parameters: ", grid.best_params_)
-    # print("Best estimator: ", grid.best_estimator_)
-
-    # mglearn.tools.visualize_coefficients(grid.best_estimator_.coef_, feature_names, n_top_features=25)
-    # plt.show()
-    # print(X_test)
+    grid = model_selection.GridSearchCV(linear_model.LogisticRegression(max_iter=1000), param_grid, cv=5)
+    grid.fit(Train_X, Train_Y)
     lr = grid.best_estimator_
-    lr.fit(X_train, y_train)
-    lr.predict(X_test)
-    # print("Score: {:.2f}".format(lr.score(X_test, y_test)))
+    lr.fit(Train_X, Train_Y)
 
-    # input_string = ["some input string of czech text"]
+    # # accuracy score calculation: 0.840
+    # lr.predict(Test_X)
+    # print("Score: {:.2f}".format(lr.score(Test_X, Test_Y)))
+
+    # adhoc input prediction:
+    # input_string = input_string[0]
+    # input_string = [x for x in input_string.split()]
+    # print(input_string)
     # print("prediction: {}". format(lr.predict(vect.transform(input_string))))
-    pickle.dump(vect, open('vectorizer.pkl', 'wb'))
-    pickle.dump(lr, open('model.pkl','wb'))
+
+    if PERSIST_MODEL_TO_FILE:
+        pickle.dump(vect, open('vectorizer.pkl', 'wb'))
+        pickle.dump(lr, open('model.pkl','wb'))
+
+
+logistic_regression()

@@ -4,17 +4,17 @@
     <div class="container-fluid">
         <div class="p-3">
             <h3>API Documentation</h3>
-            <h4>POST endpoint URL: <code>http://datahappy.pythonanywhere.com/api/v1/</code></h4>
+            <h4>POST endpoint URL: <code>http://datahappy.pythonanywhere.com/api/v1/prediction/</code></h4>
             <p>The API currently allows only POST requests with a singleton input text value provided in the <code>Input_Text</code> parameter.</p>
             <ul class="list-group">
                 <li class="list-group-item list-group-item-light">Example CURL POST request:
                     <ul class="list-group">
-                        <li class="list-group-item list-group-item-info"><code>curl -X POST -F Input_Text="your text for analysis" http://datahappy.pythonanywhere.com/api/v1/</code></li>
+                        <li class="list-group-item list-group-item-info"><code>curl -X POST -F Input_Text="your text for analysis" http://datahappy.pythonanywhere.com/api/v1/prediction/</code></li>
                     </ul>
                 </li>
                 <li class="list-group-item list-group-item-light">Example CURL POST request success response:
                     <ul class="list-group">
-                        <li class="list-group-item list-group-item-success"><code>{"sentiment_result":{"logistic_regression":"negative","naive_bayes":"positive"},"mimetype":"application/json","status":200}</code></li>
+                        <li class="list-group-item list-group-item-success"><code>{"sentiment_result":{"logistic_regression":"negative","naive_bayes":"negative"},"mimetype":"application/json","status":200}</code></li>
                     </ul>
                 </li>
                 <li class="list-group-item list-group-item-light">Example CURL POST request error response for <code>insufficient input text</code>:
@@ -22,14 +22,14 @@
                         <li class="list-group-item list-group-item-danger"><code>{"error":"More words for analysis needed","mimetype":"application/json","status":400}</code></li>
                     </ul>
                 </li>
-                <li class="list-group-item list-group-item-light">Example CURL POST request error response for a <code>bad request</code>:
-                    <ul class="list-group">
-                        <li class="list-group-item list-group-item-danger"><code>{"error":"405 Method Not Allowed: The method is not allowed for the requested URL.","mimetype":"application/json","status":405}</code></li>
-                    </ul>
-                </li>
                 <li class="list-group-item list-group-item-light">Example CURL POST request error response for <code>not found</code>:
                     <ul class="list-group">
                         <li class="list-group-item list-group-item-danger"><code>{"error":"404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.","mimetype":"application/json","status":404}</code></li>
+                    </ul>
+                </li>
+                <li class="list-group-item list-group-item-light">Example CURL POST request error response for a <code>bad request</code>:
+                    <ul class="list-group">
+                        <li class="list-group-item list-group-item-danger"><code>{"error":"405 Method Not Allowed: The method is not allowed for the requested URL.","mimetype":"application/json","status":405}</code></li>
                     </ul>
                 </li>
             </ul>

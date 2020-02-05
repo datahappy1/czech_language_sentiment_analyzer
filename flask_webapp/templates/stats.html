@@ -4,8 +4,65 @@
     <div class="container-fluid">
         <div class="p-3">
             <h3>Site Statistics</h3>
-            <h4>Work in progress</h4>
+                <ul>
+                    <li><a href="{{ url_for('stats', period='day') }}">daily</a></li>
+                    <li><a href="{{ url_for('stats', period='week') }}">weekly</a></li>
+                    <li><a href="{{ url_for('stats', period='full') }}">full site history</a></li>
+                </ul>
+                {{ template_pie_chart_records }}
+                {{ template_time_series_records }}
         </div>
+
+        <script src="{{url_for('static', filename='js/external/Chart.bundle.min.js')}}"></script>
+        <div class="chart-container">
+            <canvas id="pieChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="lineChart"></canvas>
+        </div>
+        <script>
+        var ctx = document.getElementById('pieChart').getContext('2d');
+        var myPieChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+              labels: {{ template_pie_chart_labels | tojson }},
+              datasets: [{
+                label: "Overall sentiment",
+                backgroundColor: ["#3e95cd", "#8e5ea2"],
+                data: {{ template_pie_chart_data }}
+              }]
+            },
+            options: {
+              title: {
+                display: true,
+                text: 'Overall sentiment'
+              }
+            }
+        });
+
+        var ctx = document.getElementById('lineChart').getContext('2d');
+        var myLineChart = new Chart(ctx, {
+            type: 'bar',
+                data: {
+                  labels: ["Africa", "Asia", "Europe", "Latin America", "North America"],
+                  datasets: [
+                    {
+                      label: "Population (millions)",
+                      backgroundColor: ["#3e95cd", "#8e5ea2","#3cba9f","#e8c3b9","#c45850"],
+                      data: [2478,5267,734,784,433]
+                    }
+                  ]
+                },
+                options: {
+                  legend: { display: false },
+                  title: {
+                    display: true,
+                    text: 'Predicted world population (millions) in 2050'
+                  }
+                }
+        });
+        </script>
+
     </div>
 
 {% endblock %}

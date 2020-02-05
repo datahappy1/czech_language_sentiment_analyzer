@@ -5,10 +5,13 @@ import random
 import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
-from utils.utils import _read_czech_stopwords
+from sklearn import metrics,model_selection
+from utils.utils import _read_czech_stopwords, _replace_all
 
 
 TEMP_FILE_PATH = '../../data_preparation/reviews_with_ranks.csv'
+CZECH_STOPWORDS_FILE_PATH = '../../data_preparation/czech_stopwords.txt'
+PERSIST_MODEL_TO_FILE = False
 
 
 def _read_temp_file_generator():
@@ -29,54 +32,47 @@ def naive_bayes():
     function for training and testing the ML model
     :return:
     """
-    temp_file_review_work = []
+    temp_file_reviews_work = []
 
     temp_file_gen = _read_temp_file_generator()
-    czech_stopwords = _read_czech_stopwords()
+    czech_stopwords = _read_czech_stopwords(CZECH_STOPWORDS_FILE_PATH)
 
     for tfg in temp_file_gen:
         if len(tfg) == 2:
-            if tfg[0] not in czech_stopwords:
-                temp_file_review_work.append(tfg)
+            if _replace_all(tfg[0]) not in czech_stopwords:
+                temp_file_reviews_work.append((_replace_all(tfg[0].rstrip(' ').lstrip(' ')),tfg[1]))
 
-    temp_file_review_work = [x for x in temp_file_review_work if x[1] == 0][:14000] + \
-                         [x for x in temp_file_review_work if x[1] == 1][:14000]
 
-    random.shuffle(temp_file_review_work)
-    # print(temp_file_review_work[:10])
+    temp_file_reviews_work = [x for x in temp_file_reviews_work if x[1] == 0][:14000] + \
+                         [x for x in temp_file_reviews_work if x[1] == 1][:14000]
 
-    temp_file_reviews = [x[0] for x in temp_file_review_work]
-    temp_file_class = [x[1] for x in temp_file_review_work]
-    # print(temp_file_reviews[:10])
-    # print(temp_file_class[:10])
+    random.shuffle(temp_file_reviews_work)
 
-    train_data_X = temp_file_reviews[:14000]
-    train_data_y = temp_file_class[:14000]
-    test_data_X = temp_file_reviews[14001:28000]
-    test_data_y = temp_file_class[14001:28000]
-    # print(train_data)
-    # print(test_data)
-
+    Train_X, Test_X, Train_Y, Test_Y = model_selection.train_test_split([x[0] for x in temp_file_reviews_work],
+                                                                        [x[1] for x in temp_file_reviews_work],
+                                                                                       test_size=0.2)
 
     vect = CountVectorizer()
-    X_train = vect.fit_transform([x for x in train_data_X])
-    X_test = vect.transform([x for x in test_data_X])
+    Train_X = vect.fit_transform([x for x in Train_X])
+    Test_X = vect.transform([x for x in Test_X])
 
-    y_train = train_data_y
-    y_test = test_data_y
-    # print(y_train)
     nb = MultinomialNB()
-    nb.fit(X_train, y_train)
+    nb.fit(Train_X, Train_Y)
 
-    predictions = nb.predict(X_test)
-    # print([x for x in y_test])
-    # fpr, tpr, thresholds = metrics.roc_curve([x for x in y_test], predictions, pos_label=1)
+    # # accuracy score calculation: 0.896
+    # predictions = nb.predict(Test_X)
+    # fpr, tpr, thresholds = metrics.roc_curve([x for x in Test_Y], predictions, pos_label=1)
     # print("Multinomial naive bayes AUC: {0}".format(metrics.auc(fpr, tpr)))
 
-    # xv = nb.predict(vect.transform(input_string))
-    # print(xv)
-
-    # input_string = ["some input string of czech text"]
+    # adhoc input prediction:
+    # input_string = input_string[0]
+    # input_string = [x for x in input_string.split()]
+    # print(input_string)
     # print("prediction: {}". format(nb.predict(vect.transform(input_string))))
-    pickle.dump(vect, open('vectorizer.pkl', 'wb'))
-    pickle.dump(nb, open('model.pkl','wb'))
+
+    if PERSIST_MODEL_TO_FILE:
+        pickle.dump(vect, open('vectorizer.pkl', 'wb'))
+        pickle.dump(nb, open('model.pkl','wb'))
+
+
+naive_bayes()

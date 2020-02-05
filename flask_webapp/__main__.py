@@ -3,22 +3,70 @@ __main__.py
 """
 import os
 import pickle
-from flask import Flask, render_template, send_from_directory, request, jsonify
+import sqlite3
+from datetime import datetime, timedelta
+from flask import Flask, render_template, send_from_directory, request, jsonify, g
+from flaskext.markdown import Markdown
 from waitress import serve
-from utils.utils import _read_czech_stopwords
+from utils.utils import _read_czech_stopwords, _replace_all
+from database.db_build import DB_FILE_LOC, db_builder
 
 
 APP = Flask(__name__)
+
+# app setup
+THREADS_COUNT = 4
+API_PREFIX = '/api/v1/'
+# load the czech stopwords file
 APP.config['czech_stopwords'] = _read_czech_stopwords(czech_stopwords_file_path=
                                                       '../data_preparation/czech_stopwords.txt')
 
+# setup Markdown ext.
+Markdown(APP)
+
+# load the markdown file content for /methodology
+with open("../README.md", "r") as f:
+    APP.config['md_content'] = f.read()
+
+# pickle load ml models
 VECTOR_NB = pickle.load(open('../ml_models/naive_bayes/vectorizer.pkl', 'rb'))
 MODEL_NB = pickle.load(open('../ml_models/naive_bayes/model.pkl', 'rb'))
 VECTOR_LR = pickle.load(open('../ml_models/logistic_regression/vectorizer.pkl', 'rb'))
 MODEL_LR = pickle.load(open('../ml_models/logistic_regression/model.pkl', 'rb'))
+# VECTOR_SVM = pickle.load(open('../ml_models/support_vector_machine/vectorizer.pkl', 'rb'))
+# MODEL_SVM = pickle.load(open('../ml_models/support_vector_machine/model.pkl', 'rb'))
 
-THREADS_COUNT = 4
-API_PREFIX = '/api/v1/'
+# build the DB
+db_builder()
+
+DB_INSERT_STATS_QUERY = """
+INSERT INTO 'stats'('request_datetime', 'sentiment_prediction') VALUES (?, ?);"""
+
+DB_SELECT_STATS_QUERY_PIE_CHART = """
+SELECT count(*) as cnt, sentiment_prediction
+FROM stats 
+WHERE date(request_datetime) >= ? 
+GROUP BY sentiment_prediction ;"""
+
+DB_SELECT_STATS_QUERY_TIME_SERIES = """
+SELECT count(*) as cnt, sentiment_prediction, date(request_datetime) as 'DATE()' 
+FROM stats 
+WHERE date(request_datetime) >= ?
+GROUP BY sentiment_prediction, date(request_datetime) 
+ORDER BY date(request_datetime) ;"""
+
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DB_FILE_LOC)
+    return db
+
+
+@APP.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
 
 
 def _input_string_preparator(input_string):
@@ -27,9 +75,9 @@ def _input_string_preparator(input_string):
     :param input_string:
     :return:
     """
-    input_text_list = input_string.split(' ')
-    input_text_list = [x for x in input_text_list if x not in APP.config['czech_stopwords']
-                       and x != '']
+    input_text_list_raw = input_string.split(' ')
+    input_text_list = [_replace_all(x) for x in input_text_list_raw
+                       if x not in APP.config['czech_stopwords'] and x != '']
     return input_text_list
 
 
@@ -42,6 +90,12 @@ def _ml_model_evaluator(input_string):
     prediction_output = dict()
     prediction_naive_bayes = MODEL_NB.predict(VECTOR_NB.transform(input_string))
     prediction_logistic_regression = MODEL_LR.predict(VECTOR_LR.transform(input_string))
+    #prediction_support_vector_machine = MODEL_SVM.predict(VECTOR_SVM.transform(input_string))
+
+    prediction_naive_bayes_prob = MODEL_NB.predict_proba(VECTOR_NB.transform(input_string))
+    prediction_logistic_regression_prob = MODEL_LR.predict_proba(VECTOR_LR.transform(input_string))
+    print(prediction_naive_bayes_prob)
+    print(prediction_logistic_regression_prob)
 
     if prediction_naive_bayes[0] == 0:
         prediction_output['naive_bayes'] = 'negative'
@@ -52,6 +106,15 @@ def _ml_model_evaluator(input_string):
         prediction_output['logistic_regression'] = 'negative'
     elif prediction_logistic_regression[0] == 'pos':
         prediction_output['logistic_regression'] = 'positive'
+
+    #TODO models predict_proba instead of predict gives num values of probability,
+    #TODO can be a weighted average of these results weighted by the model accuracy
+
+
+    # if len(input_string) < 3:
+    #     prediction_output['overall'] = prediction_output['naive_bayes']
+    # elif len(input_string) >= 3:
+    #     prediction_output['overall'] = prediction_output['logistic_regression']
 
     return prediction_output
 
@@ -115,24 +178,31 @@ def main():
         input_text = request.form.get('InputText')
         input_text_list = _input_string_preparator(input_text)
 
-        if len(input_text_list) < 2:
+        # to verify the input string a little bit, check if
+        # at least 3 words in the input, and at least one word length > 3
+        if len(input_text_list) > 2 and [i for i in input_text_list if len(i) > 3]:
+            input_text_list = ' '.join(input_text_list)
+            sentiment_result = _ml_model_evaluator([input_text_list])
+
+            # store the stats data in sqlite3
+            cur = get_db().cursor()
+            data_tuple = (str(sentiment_result), datetime.now())
+            cur.execute(DB_INSERT_STATS_QUERY, data_tuple)
+            get_db().commit()
+
+            return render_template('index.html',
+                                   template_input_string=input_text,
+                                   template_sentiment_result=sentiment_result)
+        else:
             return render_template('index.html',
                                    template_input_string=input_text,
                                    template_error_message="More words for analysis needed")
 
-        else:
-            input_text_list = ' '.join(input_text_list)
-            sentiment_result = _ml_model_evaluator([input_text_list])
-            return render_template('index.html',
-                                   template_input_string=input_text,
-                                   template_sentiment_result=sentiment_result)
-
-
-@APP.route(API_PREFIX, methods=['POST'])
+@APP.route(f'{API_PREFIX}prediction/', methods=['POST'])
 def api():
     """
     CURL POST example:
-    curl -X POST -F Input_Text="your text for analysis" http://127.0.0.1/api/v1/
+    curl -X POST -F Input_Text="your text for analysis" http://127.0.0.1/api/v1/prediction/
     :return:
     """
     if request.method == 'POST':
@@ -174,16 +244,40 @@ def methodology():
     the route rendering API documentation
     :return:
     """
-    return render_template('methodology.html')
+    return render_template('methodology.html', text=APP.config['md_content'])
 
 
-@APP.route('/stats', methods=['GET'])
-def stats():
+@APP.route('/stats/<string:period>/', methods=['GET'])
+def stats(period="week"):
     """
     the route rendering stats
     :return:
     """
-    return render_template('stats.html')
+
+    # prepare the select stats query argument
+    if period == "week":
+        period_from = datetime.today() - timedelta(weeks=1)
+    elif period == "day":
+        period_from = datetime.today() - timedelta(days=1)
+    elif period == "full":
+        period_from = datetime.strptime("2020-01-01", '%Y-%m-%d')
+    # falls back to 1 day of stats
+    else:
+        period_from = datetime.today() - timedelta(days=1)
+
+    # fetch the stats data from sqlite3
+    cur = get_db().cursor()
+    cur.execute(DB_SELECT_STATS_QUERY_PIE_CHART, [period_from])
+    pie_chart_raw_data = cur.fetchall()
+
+    cur.execute(DB_SELECT_STATS_QUERY_TIME_SERIES, [period_from])
+    time_series_raw_data = cur.fetchall()
+
+    return render_template('stats.html',
+                           template_pie_chart_data=[x[0] for x in pie_chart_raw_data],
+                           template_pie_chart_labels=["negative", "positive"],
+                           template_time_series_data=time_series_raw_data
+                           )
 
 
 if __name__ == "__main__":

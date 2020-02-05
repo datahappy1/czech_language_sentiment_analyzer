@@ -1,7 +1,7 @@
 """
 project common helper functions
 """
-
+import re
 
 def _read_czech_stopwords(czech_stopwords_file_path) -> list:
     """
@@ -18,6 +18,17 @@ def _read_czech_stopwords(czech_stopwords_file_path) -> list:
     return czech_stopwords
 
 
+def _cleanhtml(raw_text):
+    """
+    function to clean html tags contents from the input string
+    :param raw_text:
+    :return:
+    """
+    cleanr = re.compile('<.*?>')
+    cleantext = re.sub(cleanr, '', raw_text)
+    return cleantext
+
+
 def _replace_all(text) -> str:
     """
     multi replace string function
@@ -25,11 +36,15 @@ def _replace_all(text) -> str:
     :return:
     """
     replacements = {'"': '', '.': '', '(': '', ')': '', ',': '',
-                    '-': '', '?': '', '!': '', ':': '', '/': '',
-                    '„': '' , '<strong>': '', '<em>': '', 'ě': 'e',
-                    'š': 's', 'č': 'c', 'ř': 'r', 'ž': 'z', 'ý':'y',
-                    'á': 'a', 'í': 'i', 'é': 'e', 'ů': 'u', 'ú': 'u'}
+                    '-': '', '?': '', '!': '', ':': '', '/': '', '„': '' ,
+                    'ě': 'e', 'š': 's', 'č': 'c', 'ř': 'r', 'ž': 'z', 'ý':'y',
+                    'á': 'a', 'í': 'i', 'é': 'e', 'ů': 'u', 'ú': 'u',
+                    '  ': ' ', '   ': ' ', '%': '', '“': '', }
 
     for i, j in replacements.items():
         text = text.replace(i, j)
-    return text
+
+    text_output = _cleanhtml(text)
+
+    return text_output
+
