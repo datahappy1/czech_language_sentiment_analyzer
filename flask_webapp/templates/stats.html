@@ -1,68 +1,104 @@
 {% extends "layout.html" %}
 {% block content %}
 
-    <div class="container-fluid">
-        <div class="p-3">
-            <h3>Site Statistics</h3>
-                <ul>
-                    <li><a href="{{ url_for('stats', period='day') }}">daily</a></li>
-                    <li><a href="{{ url_for('stats', period='week') }}">weekly</a></li>
-                    <li><a href="{{ url_for('stats', period='full') }}">full site history</a></li>
-                </ul>
-                {{ template_pie_chart_records }}
-                {{ template_time_series_records }}
-        </div>
+<div class="container-fluid">
+    <div class="p-3">
+        <h3>Site Statistics</h3>
+        <ul>
+            <li><a href="{{ url_for('stats', period='day') }}">today</a></li>
+            <li><a href="{{ url_for('stats', period='week') }}">last week</a></li>
+            <li><a href="{{ url_for('stats', period='month') }}">last month</a></li>
+            <li><a href="{{ url_for('stats', period='all') }}">full history</a></li>
+        </ul>
+        << {{ template_pie_chart_data }} >>
+        << {{ template_pie_chart_labels }} >>
+        << {{ template_time_series_data }} >>
+        << {{ template_time_series_labels }} >>
+    </div>
 
-        <script src="{{url_for('static', filename='js/external/Chart.bundle.min.js')}}"></script>
-        <div class="chart-container">
-            <canvas id="pieChart"></canvas>
+    <script src="{{url_for('static', filename='js/external/Chart.bundle.min.js')}}"></script>
+
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <canvas id="pieChart"></canvas>
+            </div>
+            <div class="col">
+                <canvas id="stackedChart"></canvas>
+            </div>
         </div>
-        <div class="chart-container">
-            <canvas id="lineChart"></canvas>
-        </div>
-        <script>
+    </div>
+
+    <script>
         var ctx = document.getElementById('pieChart').getContext('2d');
         var myPieChart = new Chart(ctx, {
             type: 'pie',
             data: {
               labels: {{ template_pie_chart_labels | tojson }},
               datasets: [{
-                label: "Overall sentiment",
-                backgroundColor: ["#3e95cd", "#8e5ea2"],
+                label: "overall sentiment",
+                backgroundColor: ["#99e699", "#ff4d4d"],
                 data: {{ template_pie_chart_data }}
               }]
             },
             options: {
               title: {
                 display: true,
-                text: 'Overall sentiment'
+                text: 'overall sentiment'
               }
             }
         });
 
-        var ctx = document.getElementById('lineChart').getContext('2d');
-        var myLineChart = new Chart(ctx, {
+        var ctx = document.getElementById("stackedChart").getContext('2d');
+        var myChart = new Chart(ctx, {
             type: 'bar',
-                data: {
-                  labels: ["Africa", "Asia", "Europe", "Latin America", "North America"],
-                  datasets: [
-                    {
-                      label: "Population (millions)",
-                      backgroundColor: ["#3e95cd", "#8e5ea2","#3cba9f","#e8c3b9","#c45850"],
-                      data: [2478,5267,734,784,433]
-                    }
-                  ]
-                },
-                options: {
-                  legend: { display: false },
-                  title: {
+            data: {
+                labels: {{ template_time_series_labels | tojson }},
+                datasets: [{
+                    label: 'positive',
+                    backgroundColor: "#99e699",
+                    data: [12, 59, 5, 56, 58,12, 59, 87, 45],
+                }, {
+                    label: 'negative',
+                    backgroundColor: "#ff4d4d",
+                    data: [12, 59, 5, 56, 58,12, 59, 85, 23],
+                }],
+            },
+            options: {
+                title: {
                     display: true,
-                    text: 'Predicted world population (millions) in 2050'
-                  }
+                    text: 'time series sentiment'
+                  },
+                tooltips: {
+                  displayColors: true,
+                  callbacks:{
+                    mode: 'x',
+                  },
+                },
+                scales: {
+                  xAxes: [{
+                    stacked: true,
+                    gridLines: {
+                      display: false,
+                    }
+                  }],
+                  yAxes: [{
+                    stacked: true,
+                    ticks: {
+                      beginAtZero: true,
+                    },
+                    type: 'linear',
+                  }]
+                },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: { position: 'top' },
                 }
         });
-        </script>
 
-    </div>
+
+    </script>
+
+</div>
 
 {% endblock %}

@@ -45,13 +45,13 @@ INSERT INTO 'stats'('request_datetime', 'sentiment_prediction') VALUES (?, ?);""
 DB_SELECT_STATS_QUERY_PIE_CHART = """
 SELECT count(*) as cnt, sentiment_prediction
 FROM stats 
-WHERE date(request_datetime) >= ? 
+WHERE request_datetime >= ? 
 GROUP BY sentiment_prediction ;"""
 
 DB_SELECT_STATS_QUERY_TIME_SERIES = """
 SELECT count(*) as cnt, sentiment_prediction, date(request_datetime) as 'DATE()' 
 FROM stats 
-WHERE date(request_datetime) >= ?
+WHERE request_datetime >= ?
 GROUP BY sentiment_prediction, date(request_datetime) 
 ORDER BY date(request_datetime) ;"""
 
@@ -186,7 +186,7 @@ def main():
 
             # store the stats data in sqlite3
             cur = get_db().cursor()
-            data_tuple = (str(sentiment_result), datetime.now())
+            data_tuple = (datetime.now(), str(sentiment_result))
             cur.execute(DB_INSERT_STATS_QUERY, data_tuple)
             get_db().commit()
 
@@ -209,15 +209,7 @@ def api():
         input_text = request.form['Input_Text']
         input_text_list = _input_string_preparator(input_text)
 
-        if len(input_text_list) < 2:
-            response = jsonify({
-                'status': 400,
-                'error': 'More words for analysis needed',
-                'mimetype': 'application/json'
-            })
-            response.status_code = 400
-            return response
-        else:
+        if len(input_text_list) > 2 and [i for i in input_text_list if len(i) > 3]:
             input_text_list = ' '.join(input_text_list)
             sentiment_result = _ml_model_evaluator([input_text_list])
             response = jsonify({
@@ -226,6 +218,14 @@ def api():
                 'mimetype': 'application/json'
             })
             response.status_code = 200
+            return response
+        else:
+            response = jsonify({
+                'status': 400,
+                'error': 'More words for analysis needed',
+                'mimetype': 'application/json'
+            })
+            response.status_code = 400
             return response
 
 
@@ -259,24 +259,31 @@ def stats(period="week"):
         period_from = date.today() - timedelta(weeks=1)
     elif period == "day":
         period_from = date.today() - timedelta(days=1)
-    elif period == "full":
+    elif period == "month":
+        period_from = date.today() - timedelta(weeks=4)
+    elif period == "all":
         period_from = datetime.strptime("2020-01-01", '%Y-%m-%d')
     # falls back to 1 day of stats
     else:
         period_from = datetime.today() - timedelta(days=1)
 
+    # print(period_from)#todo missing last day
+
     # fetch the stats data from sqlite3
     cur = get_db().cursor()
     cur.execute(DB_SELECT_STATS_QUERY_PIE_CHART, [period_from])
     pie_chart_raw_data = cur.fetchall()
+    print(pie_chart_raw_data)
 
     cur.execute(DB_SELECT_STATS_QUERY_TIME_SERIES, [period_from])
     time_series_raw_data = cur.fetchall()
+    print(time_series_raw_data)
 
     return render_template('stats.html',
                            template_pie_chart_data=[x[0] for x in pie_chart_raw_data],
-                           template_pie_chart_labels=["negative", "positive"],
-                           template_time_series_data=time_series_raw_data
+                           template_pie_chart_labels=[x[1] for x in pie_chart_raw_data],#["negative", "positive"], #todo
+                           template_time_series_data=[x[0] for x in time_series_raw_data],
+                           template_time_series_labels=[x[2] for x in time_series_raw_data]
                            )
 
 
