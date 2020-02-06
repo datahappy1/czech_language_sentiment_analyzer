@@ -64,7 +64,7 @@ def naive_bayes():
     # fpr, tpr, thresholds = metrics.roc_curve([x for x in Test_Y], predictions, pos_label=1)
     # print("Multinomial naive bayes AUC: {0}".format(metrics.auc(fpr, tpr)))
 
-    # adhoc input prediction:
+    # # adhoc input prediction:
     # input_string = input_string[0]
     # input_string = [x for x in input_string.split()]
     # print(input_string)

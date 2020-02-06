@@ -64,7 +64,7 @@ def logistic_regression():
     # lr.predict(Test_X)
     # print("Score: {:.2f}".format(lr.score(Test_X, Test_Y)))
 
-    # adhoc input prediction:
+    # # adhoc input prediction:
     # input_string = input_string[0]
     # input_string = [x for x in input_string.split()]
     # print(input_string)

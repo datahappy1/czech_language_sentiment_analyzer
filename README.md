@@ -19,11 +19,18 @@ The overall sentiment score is a result of ensembling of these 3 model predictio
 
 ##### Flask web application
 Simple Flask web application is currently hosted at <a href="http://datahappy.pythonanywhere.com">http://datahappy.pythonanywhere.com</a>, source code can be found in this location <a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/tree/master/flask_webapp">/flask_webapp/</a>.
-This application backend is written in Python using the `Flask` framework and `Bootstrap` for the templates styling. This app also provides the users with a simple API. 
+This application backend is written in Python using the `Flask` framework and `Bootstrap` for the templates styling. This app also provides the users with a simple API. The stats module is an integration of `Charts.js` and `Flask` with the statistics data persistence layer being `sqlite3`.
 
 ##### Useful links
 <ul>
     <li><a href="https://scikit-learn.org/stable/tutorial/text_analytics/working_with_text_data.html">Scikit-Learn working with text data</li>
     <li><a href="https://www.pluralsight.com/guides/ensemble-modeling-scikit-learn">Ensembling with Scikit-Learn</li>
     <li><a href="https://www.chartjs.org/docs/latest/charts/">Charts.js homepage</li>
+</ul>
+
+##### TODOs
+<ul>
+    <li>Czech word lemmatizer / stemmatizer module</li>
+    <li>Remove reviews written in Slovak language</li>
+    <li>Redis could replace Sqlite3</li>
 </ul>

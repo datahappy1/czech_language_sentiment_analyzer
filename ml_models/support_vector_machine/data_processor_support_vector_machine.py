@@ -14,7 +14,7 @@ from utils.utils import _read_czech_stopwords, _replace_all
 
 TEMP_FILE_PATH = '../../data_preparation/reviews_with_ranks.csv'
 CZECH_STOPWORDS_FILE_PATH = '../../data_preparation/czech_stopwords.txt'
-PERSIST_MODEL_TO_FILE = True
+PERSIST_MODEL_TO_FILE = False
 
 def _read_temp_file_generator():
     """
@@ -79,16 +79,13 @@ def support_vector_machine():
     # print(np.mean(predicted == Test_Y))
     # print(metrics.classification_report(Test_Y, predicted, target_names = ['neg', 'pos']))
 
-
     # # adhoc input prediction:
-    # input_string = 'skvely film'
-    # # input_string = input_string[0]
+    # input_string = ''
     # print(input_string)
     # print("prediction: {}". format(gs_clf.predict([input_string])[0]))
 
 
     if PERSIST_MODEL_TO_FILE:
-        # pickle.dump(text_clf, open('vectorizer.pkl', 'wb'))
         pickle.dump(gs_clf, open('model.pkl','wb'))
 
 
