@@ -3,6 +3,7 @@ data processor for logistic regression
 """
 import random
 import pickle
+import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import SGDClassifier
 from sklearn import metrics, model_selection
@@ -72,10 +73,7 @@ def support_vector_machine():
     gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
     gs_clf = gs_clf.fit(Train_X, Train_Y)
 
-    # # accuracy score calculation: 0.840
-    # lr.predict(Test_X)
-    # print("Score: {:.2f}".format(lr.score(Test_X, Test_Y)))
-
+    # # accuracy score calculation: 0.822
     # print(np.mean(predicted == Test_Y))
     # print(metrics.classification_report(Test_Y, predicted, target_names = ['neg', 'pos']))
 

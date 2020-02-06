@@ -15,7 +15,7 @@ The scripts for training and testing are located here:
 <li><a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/tree/master/ml_models/support_vector_machine">/ml_models/support_vector_machine</a></li>
 </ul>
 
-The overall sentiment score is a result of ensembling of these 3 model predictions.
+The overall sentiment score for the specified text input is calculated as a weighted average based on the precision score accuracy of these 3 model predictions.
 
 ##### Flask web application
 Simple Flask web application is currently hosted at <a href="http://datahappy.pythonanywhere.com">http://datahappy.pythonanywhere.com</a>, source code can be found in this location <a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/tree/master/flask_webapp">/flask_webapp/</a>.
@@ -31,6 +31,7 @@ This application backend is written in Python using the `Flask` framework and `B
 ##### TODOs
 <ul>
     <li>Czech word lemmatizer / stemmatizer module</li>
+    <li>Ensembling instead of weighted model precision average for overall sentiment</li>
     <li>Remove reviews written in Slovak language</li>
     <li>Redis could replace Sqlite3</li>
 </ul>

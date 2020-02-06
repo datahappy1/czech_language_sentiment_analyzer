@@ -10,10 +10,6 @@
             <li><a href="{{ url_for('stats', period='month') }}">last month</a></li>
             <li><a href="{{ url_for('stats', period='all') }}">full history</a></li>
         </ul>
-        << {{ template_pie_chart_data }} >>
-        << {{ template_pie_chart_labels }} >>
-        << {{ template_time_series_data }} >>
-        << {{ template_time_series_labels }} >>
     </div>
 
     <script src="{{url_for('static', filename='js/external/Chart.bundle.min.js')}}"></script>
@@ -57,11 +53,11 @@
                 datasets: [{
                     label: 'positive',
                     backgroundColor: "#99e699",
-                    data: [12, 59, 5, 56, 58,12, 59, 87, 45],
+                    data: {{ template_time_series_data_positive }},
                 }, {
                     label: 'negative',
                     backgroundColor: "#ff4d4d",
-                    data: [12, 59, 5, 56, 58,12, 59, 85, 23],
+                    data: {{ template_time_series_data_negative }},
                 }],
             },
             options: {

@@ -33,12 +33,21 @@ VECTOR_NB = pickle.load(open('../ml_models/naive_bayes/vectorizer.pkl', 'rb'))
 MODEL_NB = pickle.load(open('../ml_models/naive_bayes/model.pkl', 'rb'))
 VECTOR_LR = pickle.load(open('../ml_models/logistic_regression/vectorizer.pkl', 'rb'))
 MODEL_LR = pickle.load(open('../ml_models/logistic_regression/model.pkl', 'rb'))
-# VECTOR_SVM = pickle.load(open('../ml_models/support_vector_machine/vectorizer.pkl', 'rb'))
 MODEL_SVM = pickle.load(open('../ml_models/support_vector_machine/model.pkl', 'rb'))
+
+# prepare the overall sentiment model weights
+PRECISION_NB = 0.896
+PRECISION_LR = 0.840
+PRECISION_SVM = 0.822
+PRECISION_SUM = PRECISION_NB + PRECISION_LR + PRECISION_SVM
+PRECISION_NB_WEIGHT_AVG = PRECISION_NB / PRECISION_SUM
+PRECISION_LR_WEIGHT_AVG = PRECISION_LR / PRECISION_SUM
+PRECISION_SVM_WEIGHT_AVG = PRECISION_SVM / PRECISION_SUM
 
 # build the DB
 db_builder()
 
+# setup the stats queries
 DB_INSERT_STATS_QUERY = """
 INSERT INTO 'stats'('request_datetime', 'sentiment_prediction') VALUES (?, ?);"""
 
@@ -92,38 +101,46 @@ def _ml_model_evaluator(input_string):
     prediction_logistic_regression = MODEL_LR.predict(VECTOR_LR.transform(input_string))
     prediction_support_vector_machine = MODEL_SVM.predict(input_string)
 
-    prediction_naive_bayes_prob = MODEL_NB.predict_proba(VECTOR_NB.transform(input_string))
-    prediction_logistic_regression_prob = MODEL_LR.predict_proba(VECTOR_LR.transform(input_string))
-    prediction_support_vector_machine_prob = MODEL_SVM.predict_proba(input_string)
+    prediction_naive_bayes_prob = MODEL_NB.predict_proba(VECTOR_NB.transform(input_string))[0][0]
+    prediction_logistic_regression_prob = MODEL_LR.predict_proba(VECTOR_LR.transform(input_string))[0][0]
+    prediction_support_vector_machine_prob = MODEL_SVM.predict_proba(input_string)[0][0]
+
+    # if prediction_naive_bayes[0] == 0:
+    #     prediction_output['naive_bayes'] = 'negative'
+    # elif prediction_naive_bayes[0] == 1:
+    #     prediction_output['naive_bayes'] = 'positive'
+    #
+    # if prediction_logistic_regression[0] == 'neg':
+    #     prediction_output['logistic_regression'] = 'negative'
+    # elif prediction_logistic_regression[0] == 'pos':
+    #     prediction_output['logistic_regression'] = 'positive'
+    #
+    # if prediction_support_vector_machine[0] == 'neg':
+    #     prediction_output['support_vector_machine'] = 'negative'
+    # elif prediction_support_vector_machine[0] == 'pos':
+    #     prediction_output['support_vector_machine'] = 'positive'
 
     print(prediction_naive_bayes_prob)
+    print(PRECISION_NB_WEIGHT_AVG)
     print(prediction_logistic_regression_prob)
+    print(PRECISION_LR_WEIGHT_AVG)
     print(prediction_support_vector_machine_prob)
+    print(PRECISION_SVM_WEIGHT_AVG)
 
+    prediction_output_overall_proba = (prediction_naive_bayes_prob * PRECISION_NB_WEIGHT_AVG) + \
+                                      (prediction_logistic_regression_prob * PRECISION_LR_WEIGHT_AVG) + \
+                                      (prediction_support_vector_machine_prob * PRECISION_SVM_WEIGHT_AVG)
 
-    if prediction_naive_bayes[0] == 0:
-        prediction_output['naive_bayes'] = 'negative'
-    elif prediction_naive_bayes[0] == 1:
-        prediction_output['naive_bayes'] = 'positive'
+    if prediction_output_overall_proba < 0.48:
+        prediction_output['overall_sentiment'] = 'positive'
+    elif prediction_output_overall_proba > 0.52:
+        prediction_output['overall_sentiment'] = 'negative'
+    else:
+        prediction_output['overall_sentiment'] = 'uncertain'
 
-    if prediction_logistic_regression[0] == 'neg':
-        prediction_output['logistic_regression'] = 'negative'
-    elif prediction_logistic_regression[0] == 'pos':
-        prediction_output['logistic_regression'] = 'positive'
-
-    if prediction_support_vector_machine[0] == 'neg':
-        prediction_output['support_vector_machine'] = 'negative'
-    elif prediction_support_vector_machine[0] == 'pos':
-        prediction_output['support_vector_machine'] = 'positive'
-
-    #TODO models predict_proba instead of predict gives num values of probability,
-    #TODO can be a weighted average of these results weighted by the model accuracy
-
-
-    # if len(input_string) < 3:
-    #     prediction_output['overall'] = prediction_output['naive_bayes']
-    # elif len(input_string) >= 3:
-    #     prediction_output['overall'] = prediction_output['logistic_regression']
+    print('weighted avg')
+    print(prediction_output_overall_proba)
+    print(prediction_output['overall_sentiment'])
 
     return prediction_output
 
@@ -195,7 +212,7 @@ def main():
 
             # store the stats data in sqlite3
             cur = get_db().cursor()
-            data_tuple = (datetime.now(), str(sentiment_result))
+            data_tuple = (datetime.now(), sentiment_result.get('overall_sentiment'))
             cur.execute(DB_INSERT_STATS_QUERY, data_tuple)
             get_db().commit()
 
@@ -282,7 +299,6 @@ def stats(period="week"):
     cur = get_db().cursor()
     cur.execute(DB_SELECT_STATS_QUERY_PIE_CHART, [period_from])
     pie_chart_raw_data = cur.fetchall()
-    print(pie_chart_raw_data)
 
     cur.execute(DB_SELECT_STATS_QUERY_TIME_SERIES, [period_from])
     time_series_raw_data = cur.fetchall()
@@ -290,8 +306,9 @@ def stats(period="week"):
 
     return render_template('stats.html',
                            template_pie_chart_data=[x[0] for x in pie_chart_raw_data],
-                           template_pie_chart_labels=[x[1] for x in pie_chart_raw_data],#["negative", "positive"], #todo
-                           template_time_series_data=[x[0] for x in time_series_raw_data],
+                           template_pie_chart_labels=[x[1] for x in pie_chart_raw_data],
+                           template_time_series_data_positive=[x[0] for x in time_series_raw_data if x[1] == "positive"],
+                           template_time_series_data_negative=[x[0] for x in time_series_raw_data if x[1] == "negative"],
                            template_time_series_labels=[x[2] for x in time_series_raw_data]
                            )
 

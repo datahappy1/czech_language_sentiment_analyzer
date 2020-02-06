@@ -47,4 +47,3 @@ def _replace_all(text) -> str:
     text_output = _cleanhtml(text)
 
     return text_output
-

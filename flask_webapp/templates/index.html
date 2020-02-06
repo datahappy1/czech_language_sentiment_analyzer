@@ -12,8 +12,12 @@
             <div id="result_{{ key }}"
                  {% if value =="positive" %}
                     class="alert alert-success"
-                 {% else %}
+                 {% endif %}
+                 {% if value =="negative" %}
                     class="alert alert-danger"
+                 {% endif %}
+                 {% if value =="uncertain" %}
+                    class="alert alert-warning"
                  {% endif %}
             role="alert" >
                 {{ key }} sentiment: {{ value }}
@@ -32,7 +36,7 @@
             <textarea class="form-control" id="InputText" name="InputText" rows="5" maxlength="1000"
                       placeholder="Input Czech text for sentiment analysis here" required>{{template_input_string}}</textarea>
         </div>
-        <button type="submit" class="btn btn-primary">Odeslat - Submit</button>
+        <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 
 </div>
