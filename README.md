@@ -20,3 +20,10 @@ The overall sentiment score is a result of ensembling of these 3 model predictio
 ##### Flask web application
 Simple Flask web application is currently hosted at <a href="http://datahappy.pythonanywhere.com">http://datahappy.pythonanywhere.com</a>, source code can be found in this location <a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/tree/master/flask_webapp">/flask_webapp/</a>.
 This application backend is written in Python using the `Flask` framework and `Bootstrap` for the templates styling. This app also provides the users with a simple API. 
+
+##### Useful links
+<ul>
+    <li><a href="https://scikit-learn.org/stable/tutorial/text_analytics/working_with_text_data.html">Scikit-Learn working with text data</li>
+    <li><a href="https://www.pluralsight.com/guides/ensemble-modeling-scikit-learn">Ensembling with Scikit-Learn</li>
+    <li><a href="https://www.chartjs.org/docs/latest/charts/">Charts.js homepage</li>
+</ul>

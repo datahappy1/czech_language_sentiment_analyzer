@@ -34,7 +34,7 @@ MODEL_NB = pickle.load(open('../ml_models/naive_bayes/model.pkl', 'rb'))
 VECTOR_LR = pickle.load(open('../ml_models/logistic_regression/vectorizer.pkl', 'rb'))
 MODEL_LR = pickle.load(open('../ml_models/logistic_regression/model.pkl', 'rb'))
 # VECTOR_SVM = pickle.load(open('../ml_models/support_vector_machine/vectorizer.pkl', 'rb'))
-# MODEL_SVM = pickle.load(open('../ml_models/support_vector_machine/model.pkl', 'rb'))
+MODEL_SVM = pickle.load(open('../ml_models/support_vector_machine/model.pkl', 'rb'))
 
 # build the DB
 db_builder()
@@ -90,12 +90,16 @@ def _ml_model_evaluator(input_string):
     prediction_output = dict()
     prediction_naive_bayes = MODEL_NB.predict(VECTOR_NB.transform(input_string))
     prediction_logistic_regression = MODEL_LR.predict(VECTOR_LR.transform(input_string))
-    #prediction_support_vector_machine = MODEL_SVM.predict(VECTOR_SVM.transform(input_string))
+    prediction_support_vector_machine = MODEL_SVM.predict(input_string)
 
     prediction_naive_bayes_prob = MODEL_NB.predict_proba(VECTOR_NB.transform(input_string))
     prediction_logistic_regression_prob = MODEL_LR.predict_proba(VECTOR_LR.transform(input_string))
+    prediction_support_vector_machine_prob = MODEL_SVM.predict_proba(input_string)
+
     print(prediction_naive_bayes_prob)
     print(prediction_logistic_regression_prob)
+    print(prediction_support_vector_machine_prob)
+
 
     if prediction_naive_bayes[0] == 0:
         prediction_output['naive_bayes'] = 'negative'
@@ -106,6 +110,11 @@ def _ml_model_evaluator(input_string):
         prediction_output['logistic_regression'] = 'negative'
     elif prediction_logistic_regression[0] == 'pos':
         prediction_output['logistic_regression'] = 'positive'
+
+    if prediction_support_vector_machine[0] == 'neg':
+        prediction_output['support_vector_machine'] = 'negative'
+    elif prediction_support_vector_machine[0] == 'pos':
+        prediction_output['support_vector_machine'] = 'positive'
 
     #TODO models predict_proba instead of predict gives num values of probability,
     #TODO can be a weighted average of these results weighted by the model accuracy
