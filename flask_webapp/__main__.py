@@ -293,12 +293,11 @@ def stats(period="week"):
     else:
         period_from = datetime.today() - timedelta(days=1)
 
-    # print(period_from)#todo missing last day
-
     # fetch the stats data from sqlite3
     cur = get_db().cursor()
     cur.execute(DB_SELECT_STATS_QUERY_PIE_CHART, [period_from])
     pie_chart_raw_data = cur.fetchall()
+    print(pie_chart_raw_data)#todo add 0 if no positive or negative to align colors
 
     cur.execute(DB_SELECT_STATS_QUERY_TIME_SERIES, [period_from])
     time_series_raw_data = cur.fetchall()
