@@ -18,7 +18,7 @@ The scripts for training and testing are located here:
 The overall sentiment score for the specified text input is calculated as a weighted average based on the precision score accuracy of these 3 model predictions.
 
 ##### Flask web application
-Simple Flask web application is currently hosted at <a href="http://datahappy.pythonanywhere.com">http://datahappy.pythonanywhere.com</a>, source code can be found in this location <a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/tree/master/flask_webapp">/flask_webapp/</a>.
+Simple Flask web application is currently hosted at <a href="http://datahappy.pythonanywhere.com">http://czester.pythonanywhere.com</a>, source code can be found in this location <a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/tree/master/flask_webapp">/flask_webapp/</a>.
 This application backend is written in Python using the `Flask` framework and `Bootstrap` for the templates styling. This app also provides the users with a simple API. The stats module is an integration of `Charts.js` and `Flask` with the statistics data persistence layer being `sqlite3`.
 
 ##### Useful links

@@ -273,7 +273,8 @@ def api_docs():
 @APP.route('/methodology', methods=['GET'])
 def methodology():
     """
-    the route rendering API documentation
+    the route rendering methodology documentation
+    from the repo README.md markdown
     :return:
     """
     return render_template('methodology.html', text=APP.config['md_content'])
