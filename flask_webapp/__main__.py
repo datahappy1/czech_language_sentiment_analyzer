@@ -59,7 +59,8 @@ FROM
    WHERE request_datetime >= ? 
    UNION ALL SELECT 0 as cnt, 'negative' as sentiment_prediction
    UNION ALL SELECT 0 as cnt, 'positive' as sentiment_prediction) i
- GROUP BY sentiment_prediction ;
+GROUP BY sentiment_prediction
+ORDER BY sentiment_prediction ;
 """
 
 DB_SELECT_STATS_QUERY_TIME_SERIES = """
@@ -301,12 +302,12 @@ def stats(period="week"):
     # fetch the stats data from sqlite3
     cur = get_db().cursor()
     cur.execute(DB_SELECT_STATS_QUERY_PIE_CHART, [period_from])
-    pie_chart_raw_data = sorted(cur.fetchall(), key=lambda x:x[1])
-    print(pie_chart_raw_data)
+    pie_chart_raw_data = cur.fetchall()
+    # print(pie_chart_raw_data)
 
     cur.execute(DB_SELECT_STATS_QUERY_TIME_SERIES, [period_from])
     time_series_raw_data = cur.fetchall()
-    print(time_series_raw_data)
+    # print(time_series_raw_data)
 
     return render_template('stats.html',
                            template_pie_chart_data=[x[0] for x in pie_chart_raw_data],
