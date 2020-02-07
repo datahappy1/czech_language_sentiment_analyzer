@@ -52,10 +52,15 @@ DB_INSERT_STATS_QUERY = """
 INSERT INTO 'stats'('request_datetime', 'sentiment_prediction') VALUES (?, ?);"""
 
 DB_SELECT_STATS_QUERY_PIE_CHART = """
-SELECT count(*) as cnt, sentiment_prediction
-FROM stats 
-WHERE request_datetime >= ? 
-GROUP BY sentiment_prediction ;"""
+SELECT sum(i.cnt) as cnt, sentiment_prediction
+FROM 
+  (SELECT 1 as cnt, sentiment_prediction 
+   FROM stats 
+   WHERE request_datetime >= ? 
+   UNION ALL SELECT 0 as cnt, 'negative' as sentiment_prediction
+   UNION ALL SELECT 0 as cnt, 'positive' as sentiment_prediction) i
+ GROUP BY sentiment_prediction ;
+"""
 
 DB_SELECT_STATS_QUERY_TIME_SERIES = """
 SELECT count(*) as cnt, sentiment_prediction, date(request_datetime) as 'DATE()' 
@@ -296,11 +301,11 @@ def stats(period="week"):
     # fetch the stats data from sqlite3
     cur = get_db().cursor()
     cur.execute(DB_SELECT_STATS_QUERY_PIE_CHART, [period_from])
-    pie_chart_raw_data = cur.fetchall()
-    print(pie_chart_raw_data)#todo add 0 if no positive or negative to align colors
+    pie_chart_raw_data = sorted(cur.fetchall(), key=lambda x:x[1])
+    print(pie_chart_raw_data)
 
     cur.execute(DB_SELECT_STATS_QUERY_TIME_SERIES, [period_from])
-    time_series_raw_data = cur.fetchall()
+    time_series_raw_data = sorted(cur.fetchall(), key=lambda x: (x[2], x[1]))
     print(time_series_raw_data)
 
     return render_template('stats.html',
@@ -308,7 +313,7 @@ def stats(period="week"):
                            template_pie_chart_labels=[x[1] for x in pie_chart_raw_data],
                            template_time_series_data_positive=[x[0] for x in time_series_raw_data if x[1] == "positive"],
                            template_time_series_data_negative=[x[0] for x in time_series_raw_data if x[1] == "negative"],
-                           template_time_series_labels=[x[2] for x in time_series_raw_data]
+                           template_time_series_labels=list(set([x[2] for x in time_series_raw_data]))
                            )
 
 

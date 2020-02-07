@@ -33,7 +33,7 @@
               labels: {{ template_pie_chart_labels | tojson }},
               datasets: [{
                 label: "overall sentiment",
-                backgroundColor: ["#99e699", "#ff4d4d"],
+                backgroundColor: ["#ff4d4d", "#99e699"],
                 data: {{ template_pie_chart_data }}
               }]
             },
@@ -51,13 +51,13 @@
             data: {
                 labels: {{ template_time_series_labels | tojson }},
                 datasets: [{
-                    label: 'positive',
-                    backgroundColor: "#99e699",
-                    data: {{ template_time_series_data_positive }},
-                }, {
                     label: 'negative',
                     backgroundColor: "#ff4d4d",
                     data: {{ template_time_series_data_negative }},
+                }, {
+                    label: 'positive',
+                    backgroundColor: "#99e699",
+                    data: {{ template_time_series_data_positive }},
                 }],
             },
             options: {

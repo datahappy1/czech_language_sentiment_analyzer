@@ -23,15 +23,16 @@ This application backend is written in Python using the `Flask` framework and `B
 
 ##### Useful links
 <ul>
-    <li><a href="https://scikit-learn.org/stable/tutorial/text_analytics/working_with_text_data.html">Scikit-Learn working with text data</li>
-    <li><a href="https://www.pluralsight.com/guides/ensemble-modeling-scikit-learn">Ensembling with Scikit-Learn</li>
-    <li><a href="https://www.chartjs.org/docs/latest/charts/">Charts.js homepage</li>
+    <li><a href="https://scikit-learn.org/stable/tutorial/text_analytics/working_with_text_data.html">Scikit-Learn working with text data</a></li>
+    <li><a href="https://www.pluralsight.com/guides/ensemble-modeling-scikit-learn">Ensembling with Scikit-Learn</a></li>
+    <li><a href="https://www.chartjs.org/docs/latest/charts/">Charts.js homepage</a></li>
 </ul>
 
 ##### TODOs
 <ul>
     <li>Czech word lemmatizer / stemmatizer module</li>
-    <li>Ensembling instead of weighted model precision average for overall sentiment</li>
+    <li>Scrape product reviews</li>
     <li>Remove reviews written in Slovak language</li>
+    <li>Ensembling instead of weighted model precision average for overall sentiment</li>
     <li>Redis could replace Sqlite3</li>
 </ul>
