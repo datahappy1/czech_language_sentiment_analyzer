@@ -33,6 +33,7 @@ This application backend is written in Python using the `Flask` framework and `B
     <li>Czech word lemmatizer / stemmatizer module</li>
     <li>Scrape product reviews</li>
     <li>Remove reviews written in Slovak language</li>
+    <li>Use Flask-Cache to cache the stats template content</li>
     <li>Ensembling instead of weighted model precision average for overall sentiment</li>
     <li>Redis could replace Sqlite3</li>
 </ul>
