@@ -305,7 +305,7 @@ def stats(period="week"):
     print(pie_chart_raw_data)
 
     cur.execute(DB_SELECT_STATS_QUERY_TIME_SERIES, [period_from])
-    time_series_raw_data = sorted(cur.fetchall(), key=lambda x: (x[2], x[1]))
+    time_series_raw_data = cur.fetchall()
     print(time_series_raw_data)
 
     return render_template('stats.html',
@@ -313,7 +313,7 @@ def stats(period="week"):
                            template_pie_chart_labels=[x[1] for x in pie_chart_raw_data],
                            template_time_series_data_positive=[x[0] for x in time_series_raw_data if x[1] == "positive"],
                            template_time_series_data_negative=[x[0] for x in time_series_raw_data if x[1] == "negative"],
-                           template_time_series_labels=list(set([x[2] for x in time_series_raw_data]))
+                           template_time_series_labels=sorted(list(set([x[2] for x in time_series_raw_data])))
                            )
 
 
