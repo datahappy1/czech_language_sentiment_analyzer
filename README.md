@@ -22,14 +22,13 @@ The Flask web application is currently hosted at <a href="http://czester.herokua
 This application backend is written in Python using the `Flask` framework and `Bootstrap` for the templates styling. This app also provides the users with a simple API. The stats module is an integration of `Charts.js` and `Flask` with the statistics data persistence layer being `sqlite3`.
 
 ##### How to run this Flask App from local environment
-1) create and activate a standard Python virtual or pipenv environment
-2) `pip3` install the requirements from `requirements.txt`
+1) create and activate a standard Python virtual or pipenv environment <br>
+2) `pip3` install the requirements from `requirements.txt` <br>
 3) set the working directory for instance to the path where you cloned this repo (Make sure it's the path where the Heroku `Procfile` file is located)
 
 ##### TODOs
 <ul>
     <li>Czech word lemmatizer / stemmatizer module</li>
-    <li>Scrape also some product reviews</li>
     <li>Remove reviews written in Slovak language</li>
     <li>Ensembling instead of weighted model precision average for overall sentiment</li>
     <li>Add tests</li>

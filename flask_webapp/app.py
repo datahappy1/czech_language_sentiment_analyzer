@@ -222,7 +222,7 @@ def api():
             return response
 
 
-@app.route('/API_DOCS', methods=['GET'])
+@app.route('/api_docs', methods=['GET'])
 def api_docs():
     """
     the route rendering API documentation
