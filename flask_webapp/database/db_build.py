@@ -1,7 +1,7 @@
 import sqlite3
 from sqlite3 import Error
 
-DB_FILE_LOC = "database/stats.db"
+DB_FILE_LOC = "stats.db"
 
 
 def create_connection(db_file):

@@ -15,11 +15,10 @@ from flask_webapp.database.db_build import DB_FILE_LOC, db_builder
 app = Flask(__name__)
 
 # app setup
-THREADS_COUNT = 4
 API_PREFIX = '/api/v1/'
 # load the czech stopwords file
 app.config['czech_stopwords'] = _read_czech_stopwords(czech_stopwords_file_path=
-                                                      '../data_preparation/czech_stopwords.txt')
+                                                      'data_preparation/czech_stopwords.txt')
 
 # setup Markdown ext.
 Markdown(app)
@@ -32,15 +31,15 @@ app.config['CACHE_TYPE'] = 'simple'
 app.cache = Cache(app)
 
 # load the markdown file content for /methodology
-with open("../README.md", "r") as f:
+with open("README.md", "r") as f:
     app.config['md_content'] = f.read()
 
 # pickle load ml models
-VECTOR_NB = pickle.load(open('../ml_models/naive_bayes/vectorizer.pkl', 'rb'))
-MODEL_NB = pickle.load(open('../ml_models/naive_bayes/model.pkl', 'rb'))
-VECTOR_LR = pickle.load(open('../ml_models/logistic_regression/vectorizer.pkl', 'rb'))
-MODEL_LR = pickle.load(open('../ml_models/logistic_regression/model.pkl', 'rb'))
-MODEL_SVM = pickle.load(open('../ml_models/support_vector_machine/model.pkl', 'rb'))
+VECTOR_NB = pickle.load(open('ml_models/naive_bayes/vectorizer.pkl', 'rb'))
+MODEL_NB = pickle.load(open('ml_models/naive_bayes/model.pkl', 'rb'))
+VECTOR_LR = pickle.load(open('ml_models/logistic_regression/vectorizer.pkl', 'rb'))
+MODEL_LR = pickle.load(open('ml_models/logistic_regression/model.pkl', 'rb'))
+MODEL_SVM = pickle.load(open('ml_models/support_vector_machine/model.pkl', 'rb'))
 
 # prepare the overall sentiment model weights
 PRECISION_NB = 0.896
@@ -305,5 +304,7 @@ def stats(period="week"):
 
 
 if __name__ == "__main__":
-    #serve(app, host='0.0.0.0', port=80, threads=THREADS_COUNT)
+    # Local
+    #serve(app, host='0.0.0.0', port=80, threads=4)
+    # Heroku
     serve(app, host='127.0.0.1', port=5000)

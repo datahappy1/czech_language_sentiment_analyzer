@@ -28,12 +28,18 @@ This application backend is written in Python using the `Flask` framework and `B
     <li><a href="https://www.chartjs.org/docs/latest/charts/">Charts.js homepage</a></li>
 </ul>
 
+##### How to run this Flask App from local environment
+<ul>
+    <li>create and activate a virtual or pipenv environment</li>
+    <li>pip3 install the requirements from requirements.txt</li>
+    <li>set the working directory for instance to the path where you cloned this repo (Make sure it's the path where the Heroku Procfile file is located)</li>
+</ul>
+
 ##### TODOs
 <ul>
     <li>Czech word lemmatizer / stemmatizer module</li>
-    <li>Scrape product reviews</li>
+    <li>Scrape also some product reviews</li>
     <li>Remove reviews written in Slovak language</li>
-    <li>Use Flask-Cache to cache the stats template content</li>
     <li>Ensembling instead of weighted model precision average for overall sentiment</li>
     <li>Redis could replace Sqlite3</li>
 </ul>
