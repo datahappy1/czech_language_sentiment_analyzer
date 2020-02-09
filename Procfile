@@ -1,1 +1,1 @@
-web:waitress-serve —port=$PORT czester:app
+web: waitress-serve —port=$PORT czester:app
