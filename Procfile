@@ -1,0 +1,1 @@
+web:waitress-serve __main__:app
