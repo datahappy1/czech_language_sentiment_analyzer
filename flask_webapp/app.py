@@ -10,7 +10,7 @@ from flaskext.markdown import Markdown
 from flask_caching import Cache
 from waitress import serve
 from utils.utils import _read_czech_stopwords, _replace_all
-from flask_webapp.database.db_build import DB_FILE_LOC, db_builder
+from flask_webapp.database.db_sqlite import DB_FILE_LOC, db_builder, Query
 
 app = Flask(__name__)
 
@@ -53,28 +53,6 @@ PRECISION_SVM_WEIGHT_AVG = PRECISION_SVM / PRECISION_SUM
 # build the DB
 db_builder()
 
-# setup the stats queries
-DB_INSERT_STATS_QUERY = """
-INSERT INTO 'stats'('request_datetime', 'sentiment_prediction') VALUES (?, ?);"""
-
-DB_SELECT_STATS_QUERY_PIE_CHART = """
-SELECT sum(i.cnt) as cnt, sentiment_prediction
-FROM 
-  (SELECT 1 as cnt, sentiment_prediction 
-   FROM stats 
-   WHERE request_datetime >= ? 
-   UNION ALL SELECT 0 as cnt, 'negative' as sentiment_prediction
-   UNION ALL SELECT 0 as cnt, 'positive' as sentiment_prediction) i
-GROUP BY sentiment_prediction
-ORDER BY sentiment_prediction ;
-"""
-
-DB_SELECT_STATS_QUERY_TIME_SERIES = """
-SELECT count(*) as cnt, sentiment_prediction, date(request_datetime) as 'DATE()' 
-FROM stats 
-WHERE request_datetime >= ?
-GROUP BY sentiment_prediction, date(request_datetime) 
-ORDER BY date(request_datetime) ;"""
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -202,7 +180,7 @@ def main():
             # store the stats data in sqlite3
             cur = get_db().cursor()
             data_tuple = (datetime.now(), sentiment_result.get('overall_sentiment').get('sentiment'))
-            cur.execute(DB_INSERT_STATS_QUERY, data_tuple)
+            cur.execute(Query.DB_INSERT_STATS_QUERY, data_tuple)
             get_db().commit()
 
             return render_template('index.html',
@@ -286,25 +264,24 @@ def stats(period="week"):
 
     # fetch the stats data from sqlite3
     cur = get_db().cursor()
-    cur.execute(DB_SELECT_STATS_QUERY_PIE_CHART, [period_from])
+    cur.execute(Query.DB_SELECT_STATS_QUERY_PIE_CHART, [period_from])
     pie_chart_raw_data = cur.fetchall()
-    # print(pie_chart_raw_data)
 
-    cur.execute(DB_SELECT_STATS_QUERY_TIME_SERIES, [period_from])
+    cur.execute(Query.DB_SELECT_STATS_QUERY_TIME_SERIES, [period_from])
     time_series_raw_data = cur.fetchall()
-    # print(time_series_raw_data)
 
     return render_template('stats.html',
                            template_pie_chart_data=[x[0] for x in pie_chart_raw_data],
                            template_pie_chart_labels=[x[1] for x in pie_chart_raw_data],
                            template_time_series_data_positive=[x[0] for x in time_series_raw_data if x[1] == "positive"],
                            template_time_series_data_negative=[x[0] for x in time_series_raw_data if x[1] == "negative"],
+                           template_time_series_data_uncertain=[x[0] for x in time_series_raw_data if x[1] == "uncertain"],
                            template_time_series_labels=sorted(list(set([x[2] for x in time_series_raw_data])))
                            )
 
 
 if __name__ == "__main__":
-    # Local
-    #serve(app, host='0.0.0.0', port=80, threads=4)
-    # Heroku
+    # Local app run:
+    # serve(app, host='0.0.0.0', port=80, threads=4)
+    # Heroku deployed app run:
     serve(app, host='127.0.0.1', port=5000)
