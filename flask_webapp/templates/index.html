@@ -10,19 +10,22 @@
             <label for="result_{{ key }}"></label>
             {% for key, value in template_sentiment_result.items() %}
             <div id="result_{{ key }}"
-                 {% if value =="positive" %}
+                 {% if value.get('sentiment') =="positive" %}
                     class="alert alert-success"
                  {% endif %}
-                 {% if value =="negative" %}
+                 {% if value.get('sentiment') =="negative" %}
                     class="alert alert-danger"
                  {% endif %}
-                 {% if value =="uncertain" %}
+                 {% if value.get('sentiment') =="uncertain" %}
                     class="alert alert-warning"
                  {% endif %}
             role="alert" >
-                {{ key }} sentiment: {{ value }}
+                {{ key }} : <b>{{ value.get('sentiment') }}</b>
+                <a id="link_show_details" href="#" onclick="show_details()" style="display:block;">show details</a>
+                <span id="span_with_details" style="display:none;">probability: {{ value.get('probability') }} </span>
             </div>
         {% endfor %}
+
     {% endif %}
 
     {% if template_error_message %}
@@ -40,5 +43,15 @@
     </form>
 
 </div>
+
+<script>
+    function show_details() {
+        if(document.getElementById('span_with_details').style.display=='none') {
+            document.getElementById('span_with_details').style.display='block';
+            document.getElementById('link_show_details').style.display='none';
+        }
+        return false;
+    }
+</script>
 
 {% endblock %}

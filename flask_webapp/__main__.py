@@ -7,10 +7,10 @@ import sqlite3
 from datetime import date, datetime, timedelta
 from flask import Flask, render_template, send_from_directory, request, jsonify, g
 from flaskext.markdown import Markdown
+from flask_caching import Cache
 from waitress import serve
 from utils.utils import _read_czech_stopwords, _replace_all
 from flask_webapp.database.db_build import DB_FILE_LOC, db_builder
-
 
 APP = Flask(__name__)
 
@@ -23,6 +23,13 @@ APP.config['czech_stopwords'] = _read_czech_stopwords(czech_stopwords_file_path=
 
 # setup Markdown ext.
 Markdown(APP)
+
+# setup Cache ext.
+# define the cache config keys, remember that it can be done in a settings file
+APP.config['CACHE_TYPE'] = 'simple'
+
+# register the cache instance and binds it on to your app
+APP.cache = Cache(APP)
 
 # load the markdown file content for /methodology
 with open("../README.md", "r") as f:
@@ -103,9 +110,9 @@ def _ml_model_evaluator(input_string):
     :return: prediction_output dict
     """
     prediction_output = dict()
-    prediction_naive_bayes = MODEL_NB.predict(VECTOR_NB.transform(input_string))
-    prediction_logistic_regression = MODEL_LR.predict(VECTOR_LR.transform(input_string))
-    prediction_support_vector_machine = MODEL_SVM.predict(input_string)
+    # prediction_naive_bayes = MODEL_NB.predict(VECTOR_NB.transform(input_string))
+    # prediction_logistic_regression = MODEL_LR.predict(VECTOR_LR.transform(input_string))
+    # prediction_support_vector_machine = MODEL_SVM.predict(input_string)
 
     prediction_naive_bayes_prob = MODEL_NB.predict_proba(VECTOR_NB.transform(input_string))[0][0]
     prediction_logistic_regression_prob = MODEL_LR.predict_proba(VECTOR_LR.transform(input_string))[0][0]
@@ -126,27 +133,26 @@ def _ml_model_evaluator(input_string):
     # elif prediction_support_vector_machine[0] == 'pos':
     #     prediction_output['support_vector_machine'] = 'positive'
 
-    print(prediction_naive_bayes_prob)
-    print(PRECISION_NB_WEIGHT_AVG)
-    print(prediction_logistic_regression_prob)
-    print(PRECISION_LR_WEIGHT_AVG)
-    print(prediction_support_vector_machine_prob)
-    print(PRECISION_SVM_WEIGHT_AVG)
+    # print(prediction_naive_bayes_prob)
+    # print(PRECISION_NB_WEIGHT_AVG)
+    # print(prediction_logistic_regression_prob)
+    # print(PRECISION_LR_WEIGHT_AVG)
+    # print(prediction_support_vector_machine_prob)
+    # print(PRECISION_SVM_WEIGHT_AVG)
 
     prediction_output_overall_proba = (prediction_naive_bayes_prob * PRECISION_NB_WEIGHT_AVG) + \
                                       (prediction_logistic_regression_prob * PRECISION_LR_WEIGHT_AVG) + \
                                       (prediction_support_vector_machine_prob * PRECISION_SVM_WEIGHT_AVG)
 
     if prediction_output_overall_proba < 0.48:
-        prediction_output['overall_sentiment'] = 'positive'
+        prediction_output['overall_sentiment'] = {'sentiment': 'positive',
+                                                  'probability': prediction_output_overall_proba}
     elif prediction_output_overall_proba > 0.52:
-        prediction_output['overall_sentiment'] = 'negative'
+        prediction_output['overall_sentiment'] = {'sentiment': 'negative',
+                                                  'probability': prediction_output_overall_proba}
     else:
-        prediction_output['overall_sentiment'] = 'uncertain'
-
-    print('weighted avg')
-    print(prediction_output_overall_proba)
-    print(prediction_output['overall_sentiment'])
+        prediction_output['overall_sentiment'] = {'sentiment': 'uncertain',
+                                                  'probability': prediction_output_overall_proba}
 
     return prediction_output
 
@@ -218,7 +224,7 @@ def main():
 
             # store the stats data in sqlite3
             cur = get_db().cursor()
-            data_tuple = (datetime.now(), sentiment_result.get('overall_sentiment'))
+            data_tuple = (datetime.now(), sentiment_result.get('overall_sentiment').get('sentiment'))
             cur.execute(DB_INSERT_STATS_QUERY, data_tuple)
             get_db().commit()
 
@@ -281,6 +287,7 @@ def methodology():
 
 
 @APP.route('/stats/<string:period>/', methods=['GET'])
+@APP.cache.cached(timeout=300)  # cache this view for 5 minutes
 def stats(period="week"):
     """
     the route rendering stats

@@ -2,5 +2,6 @@ requests==2.22.0
 bs4==0.0.1
 flask==1.1.1
 flask-markdown==0.3
+flask-caching==1.8.0
 waitress>=1.4.0
 sklearn
