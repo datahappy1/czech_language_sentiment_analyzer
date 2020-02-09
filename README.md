@@ -32,6 +32,7 @@ This application backend is written in Python using the `Flask` framework and `B
     <li>Scrape also some product reviews</li>
     <li>Remove reviews written in Slovak language</li>
     <li>Ensembling instead of weighted model precision average for overall sentiment</li>
+    <li>Add tests</li>
     <li>Redis could replace Sqlite3</li>
 </ul>
 

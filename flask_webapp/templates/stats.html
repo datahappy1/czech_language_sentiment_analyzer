@@ -33,7 +33,7 @@
               labels: {{ template_pie_chart_labels | tojson }},
               datasets: [{
                 label: "overall sentiment",
-                // sorted by keys in order this order: positive, negative, uncertain
+                // sorted by keys in order this order: negative, positive, uncertain
                 backgroundColor: ["#ff4d4d", "#99e699", "#d9d9d9"],
                 data: {{ template_pie_chart_data }}
               }]
