@@ -12,28 +12,28 @@ from waitress import serve
 from utils.utils import _read_czech_stopwords, _replace_all
 from flask_webapp.database.db_build import DB_FILE_LOC, db_builder
 
-APP = Flask(__name__)
+app = Flask(__name__)
 
 # app setup
 THREADS_COUNT = 4
 API_PREFIX = '/api/v1/'
 # load the czech stopwords file
-APP.config['czech_stopwords'] = _read_czech_stopwords(czech_stopwords_file_path=
+app.config['czech_stopwords'] = _read_czech_stopwords(czech_stopwords_file_path=
                                                       '../data_preparation/czech_stopwords.txt')
 
 # setup Markdown ext.
-Markdown(APP)
+Markdown(app)
 
 # setup Cache ext.
 # define the cache config keys, remember that it can be done in a settings file
-APP.config['CACHE_TYPE'] = 'simple'
+app.config['CACHE_TYPE'] = 'simple'
 
 # register the cache instance and binds it on to your app
-APP.cache = Cache(APP)
+app.cache = Cache(app)
 
 # load the markdown file content for /methodology
 with open("../README.md", "r") as f:
-    APP.config['md_content'] = f.read()
+    app.config['md_content'] = f.read()
 
 # pickle load ml models
 VECTOR_NB = pickle.load(open('../ml_models/naive_bayes/vectorizer.pkl', 'rb'))
@@ -84,7 +84,7 @@ def get_db():
     return db
 
 
-@APP.teardown_appcontext
+@app.teardown_appcontext
 def close_connection(exception):
     db = getattr(g, '_database', None)
     if db is not None:
@@ -99,7 +99,7 @@ def _input_string_preparator(input_string):
     """
     input_text_list_raw = input_string.split(' ')
     input_text_list = [_replace_all(x) for x in input_text_list_raw
-                       if x not in APP.config['czech_stopwords'] and x != '']
+                       if x not in app.config['czech_stopwords'] and x != '']
     return input_text_list
 
 
@@ -118,28 +118,6 @@ def _ml_model_evaluator(input_string):
     prediction_logistic_regression_prob = MODEL_LR.predict_proba(VECTOR_LR.transform(input_string))[0][0]
     prediction_support_vector_machine_prob = MODEL_SVM.predict_proba(input_string)[0][0]
 
-    # if prediction_naive_bayes[0] == 0:
-    #     prediction_output['naive_bayes'] = 'negative'
-    # elif prediction_naive_bayes[0] == 1:
-    #     prediction_output['naive_bayes'] = 'positive'
-    #
-    # if prediction_logistic_regression[0] == 'neg':
-    #     prediction_output['logistic_regression'] = 'negative'
-    # elif prediction_logistic_regression[0] == 'pos':
-    #     prediction_output['logistic_regression'] = 'positive'
-    #
-    # if prediction_support_vector_machine[0] == 'neg':
-    #     prediction_output['support_vector_machine'] = 'negative'
-    # elif prediction_support_vector_machine[0] == 'pos':
-    #     prediction_output['support_vector_machine'] = 'positive'
-
-    # print(prediction_naive_bayes_prob)
-    # print(PRECISION_NB_WEIGHT_AVG)
-    # print(prediction_logistic_regression_prob)
-    # print(PRECISION_LR_WEIGHT_AVG)
-    # print(prediction_support_vector_machine_prob)
-    # print(PRECISION_SVM_WEIGHT_AVG)
-
     prediction_output_overall_proba = (prediction_naive_bayes_prob * PRECISION_NB_WEIGHT_AVG) + \
                                       (prediction_logistic_regression_prob * PRECISION_LR_WEIGHT_AVG) + \
                                       (prediction_support_vector_machine_prob * PRECISION_SVM_WEIGHT_AVG)
@@ -157,17 +135,17 @@ def _ml_model_evaluator(input_string):
     return prediction_output
 
 
-@APP.route('/favicon.ico')
+@app.route('/favicon.ico')
 def favicon():
     """
     function to properly handle favicon
     :return:
     """
-    return send_from_directory(os.path.join(APP.root_path, 'static'),
+    return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
-@APP.errorhandler(405)
+@app.errorhandler(405)
 def not_allowed(error):
     """
     not allowed method error handler function
@@ -185,7 +163,7 @@ def not_allowed(error):
     return render_template('error_page.html', template_error_message=error)
 
 
-@APP.errorhandler(404)
+@app.errorhandler(404)
 def not_found(error):
     """
     not found app error handler function
@@ -203,7 +181,7 @@ def not_found(error):
     return render_template('error_page.html', template_error_message=error)
 
 
-@APP.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def main():
     """
     the main route rendering index.html
@@ -236,7 +214,7 @@ def main():
                                    template_input_string=input_text,
                                    template_error_message="More words for analysis needed")
 
-@APP.route(f'{API_PREFIX}prediction/', methods=['POST'])
+@app.route(f'{API_PREFIX}prediction/', methods=['POST'])
 def api():
     """
     CURL POST example:
@@ -267,7 +245,7 @@ def api():
             return response
 
 
-@APP.route('/API_DOCS', methods=['GET'])
+@app.route('/API_DOCS', methods=['GET'])
 def api_docs():
     """
     the route rendering API documentation
@@ -276,18 +254,18 @@ def api_docs():
     return render_template('api_docs.html')
 
 
-@APP.route('/methodology', methods=['GET'])
+@app.route('/methodology', methods=['GET'])
 def methodology():
     """
     the route rendering methodology documentation
     from the repo README.md markdown
     :return:
     """
-    return render_template('methodology.html', text=APP.config['md_content'])
+    return render_template('methodology.html', text=app.config['md_content'])
 
 
-@APP.route('/stats/<string:period>/', methods=['GET'])
-@APP.cache.cached(timeout=300)  # cache this view for 5 minutes
+@app.route('/stats/<string:period>/', methods=['GET'])
+@app.cache.cached(timeout=300)  # cache this view for 5 minutes
 def stats(period="week"):
     """
     the route rendering stats
@@ -327,4 +305,4 @@ def stats(period="week"):
 
 
 if __name__ == "__main__":
-    serve(APP, host='0.0.0.0', port=80, threads=THREADS_COUNT)
+    serve(app, host='0.0.0.0', port=80, threads=THREADS_COUNT)
