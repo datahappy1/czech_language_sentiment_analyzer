@@ -1,1 +1,1 @@
-web:waitress-serve __main__:app
+web : waitress-serve app:app
