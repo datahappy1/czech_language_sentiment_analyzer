@@ -24,6 +24,7 @@ def create_connection(db_url):
             host=host,
             port=port
         )
+        conn.autocommit = True
         return conn
     except psycopg2.Error as e:
         print(e)
