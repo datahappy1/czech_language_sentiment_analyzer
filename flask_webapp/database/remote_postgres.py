@@ -82,16 +82,19 @@ def db_builder():
 
     # drop and re-create table
     if conn is not None:
-        # # check the max(id) in stats table
-        # _max_id = run_statement_fetchone(conn, Query.DB_SELECT_MAX_ID_QUERY)[0]
-
-        # if _max_id > 7000:
-        #     # drop stats table
-        #     run_statement_no_return(conn, Query.DB_DROP_TABLE)
-        #     print(f"Dropped the stats table, max(id): {_max_id}")
+        # _table_exists = run_statement_fetchone(conn, Query.DB_CHECK_TABLE_EXISTS)
+        #
+        # if _table_exists:
+        #     # check the max(id) in stats table
+        #     _max_id = run_statement_fetchone(conn, Query.DB_SELECT_MAX_ID_QUERY)[0]
+        #
+        #     if _max_id > 7000:
+        #         # drop stats table
+        #         run_statement_no_return(conn, Query.DB_DROP_TABLE)
+        #         print(f"Dropped the stats table, max(id): {_max_id}")
 
         # create stats table
-        run_statement_no_return(conn, Query.DB_CREATE_TABLE)
+        run_statement_no_return(conn, Query.DB_CREATE_TABLE_POSTGRES)
 
         conn.close()
     else:

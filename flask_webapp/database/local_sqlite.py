@@ -41,7 +41,7 @@ def db_builder():
     # create tables
     if conn is not None:
         # create projects table
-        create_table(conn, Query.DB_CREATE_TABLE)
+        create_table(conn, Query.DB_CREATE_TABLE_SQLITE)
         conn.close()
     else:
         print("Error! cannot create the database connection.")

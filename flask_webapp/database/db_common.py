@@ -3,6 +3,13 @@ class Query:
     DB_DROP_TABLE = """
     DROP TABLE IF EXISTS stats; """
 
+    # check if table exists
+    DB_CHECK_TABLE_EXISTS = """
+    SELECT EXISTS (
+    SELECT FROM information_schema.tables 
+    WHERE  table_schema = 'czester'
+    AND    table_name   = 'stats'); """
+
     # create the stats table
     DB_CREATE_TABLE_SQLITE = """
     CREATE TABLE IF NOT EXISTS stats (
