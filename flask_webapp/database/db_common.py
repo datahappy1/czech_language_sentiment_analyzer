@@ -40,7 +40,7 @@ class Query:
     FROM 
       (SELECT 1 as cnt, sentiment_prediction 
        FROM stats 
-       WHERE request_datetime >= ? 
+       -- WHERE request_datetime >= ? 
        UNION ALL SELECT 0 as cnt, 'negative' as sentiment_prediction
        UNION ALL SELECT 0 as cnt, 'positive' as sentiment_prediction) i
     GROUP BY sentiment_prediction

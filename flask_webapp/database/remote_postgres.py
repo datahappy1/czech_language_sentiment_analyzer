@@ -82,7 +82,7 @@ def db_builder():
     conn = create_connection(DB_URL_PARSED)
 
     # drop and re-create table
-    if conn is not None:
+    # if conn is not None:
         # _table_exists = run_statement_fetchone(conn, Query.DB_CHECK_TABLE_EXISTS)
         #
         # if _table_exists:
@@ -95,8 +95,8 @@ def db_builder():
         #         print(f"Dropped the stats table, max(id): {_max_id}")
 
         # create stats table
-        run_statement_no_return(conn, Query.DB_CREATE_TABLE_POSTGRES)
+    run_statement_no_return(conn, Query.DB_CREATE_TABLE_POSTGRES)
 
-        conn.close()
-    else:
-        print("Error! cannot create the database connection.")
+    conn.close()
+    # else:
+    #     print("Error! cannot create the database connection.")
