@@ -74,7 +74,7 @@ def run_statement_no_return(conn, statement):
     try:
         c = conn.cursor()
         c.execute(statement)
-        c.commit()
+        conn.commit()
     except psycopg2.Error as e:
         print(e)
 
