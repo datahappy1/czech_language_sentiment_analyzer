@@ -1,4 +1,3 @@
-#### CZEch SentimenT analyzER "czester"
 ##### Data Collection
 56k Czech movie reviews were collected using the <a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/blob/master/data_preparation/data_collector_movie_review_scraper.py">/data_preparation/data_collector_movie_review_scraper.py</a>
 multithreaded HTML scraping module. To have the data balanced with the same amount of negative and positive reviews, the

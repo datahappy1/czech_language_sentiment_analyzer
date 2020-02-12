@@ -5,10 +5,18 @@
     <div class="p-3">
         <h3>Site Statistics</h3>
         <ul>
-            <li><a href="{{ url_for('stats', period='day') }}">today</a></li>
-            <li><a href="{{ url_for('stats', period='week') }}">last week</a></li>
-            <li><a href="{{ url_for('stats', period='month') }}">last month</a></li>
-            <li><a href="{{ url_for('stats', period='all') }}">full history</a></li>
+            <li><a href="{{ url_for('stats', period='day') }}"
+                   {% if template_period=="day" %} class="font-weight-bold" {% endif %}>
+                today</a></li>
+            <li><a href="{{ url_for('stats', period='week') }}"
+                   {% if template_period=="week" %} class="font-weight-bold" {% endif %}>
+                last week</a></li>
+            <li><a href="{{ url_for('stats', period='month') }}"
+                   {% if template_period=="month" %} class="font-weight-bold" {% endif %}>
+                last month</a></li>
+            <li><a href="{{ url_for('stats', period='all') }}"
+                   {% if template_period=="all" %} class="font-weight-bold" {% endif %}>
+                full history</a></li>
         </ul>
     </div>
 
@@ -97,6 +105,7 @@
                     legend: { position: 'top' },
                 }
         });
+
 
 
     </script>

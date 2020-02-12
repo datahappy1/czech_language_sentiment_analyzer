@@ -242,7 +242,7 @@ def methodology():
 
 
 @app.route('/stats/<string:period>/', methods=['GET'])
-@app.cache.cached(timeout=300)  # cache this view for 5 minutes
+@app.cache.cached(timeout=60)  # cache this view for 1 minute
 def stats(period="week"):
     """
     the route rendering stats
@@ -271,6 +271,7 @@ def stats(period="week"):
     time_series_raw_data = cur.fetchall()
 
     return render_template('stats.html',
+                           template_period=period,
                            template_pie_chart_data=[x[0] for x in pie_chart_raw_data],
                            template_pie_chart_labels=[x[1] for x in pie_chart_raw_data],
                            template_time_series_data_positive=[x[0] for x in time_series_raw_data if x[1] == "positive"],
@@ -281,7 +282,7 @@ def stats(period="week"):
 
 
 if __name__ == "__main__":
-    # Local app run:
-    # serve(app, host='0.0.0.0', port=80, threads=4)
-    # Heroku deployed app run:
-    serve(app, host='127.0.0.1', port=5000)
+    # #Local app run:
+    serve(app, host='0.0.0.0', port=80, threads=4)
+    # # Heroku deployed app run:
+    # serve(app, host='127.0.0.1', port=5000)
