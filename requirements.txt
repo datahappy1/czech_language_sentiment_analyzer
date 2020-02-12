@@ -5,4 +5,4 @@ flask-markdown==0.3
 flask-caching==1.8.0
 waitress>=1.4.0
 sklearn
-psycopg2-binary
+psycopg2-binary==2.8.4

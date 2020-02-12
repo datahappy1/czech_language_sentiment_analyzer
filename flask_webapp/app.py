@@ -55,20 +55,19 @@ PRECISION_LR_WEIGHT_AVG = PRECISION_LR / PRECISION_SUM
 PRECISION_SVM_WEIGHT_AVG = PRECISION_SVM / PRECISION_SUM
 
 # build the DB
-# if __env__ == "remote":
-#     remote_db_builder()
-# else:
-#     local_db_builder()
-remote_db_builder()
+if __env__ == "remote":
+    remote_db_builder()
+else:
+    local_db_builder()
 
 
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        # if __env__ == "remote":
-        db = g._database = psycopg2.connect(DB_URL, sslmode='require')
-        # else:
-        #     db = g._database = sqlite3.connect(DB_FILE_LOC)
+        if __env__ == "remote":
+            db = g._database = psycopg2.connect(DB_URL, sslmode='require')
+        else:
+            db = g._database = sqlite3.connect(DB_FILE_LOC)
     return db
 
 
