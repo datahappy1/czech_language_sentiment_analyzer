@@ -187,7 +187,7 @@ def main():
             input_text_list = ' '.join(input_text_list)
             sentiment_result = _ml_model_evaluator([input_text_list])
 
-            # store the stats data in sqlite3
+            # store the stats data in Sqlite3/Postgres based on __venv__
             cur = get_db().cursor()
             data_tuple = (datetime.now(), sentiment_result.get('overall_sentiment').get('sentiment'))
             cur.execute(Query.DB_INSERT_STATS_QUERY, data_tuple)
@@ -292,7 +292,9 @@ def stats(period="day"):
 
 
 if __name__ == "__main__":
-    # #Local app run:
-    serve(app, host='0.0.0.0', port=80, threads=4)
-    # # Heroku deployed app run:
-    # serve(app, host='127.0.0.1', port=5000)
+    if __env__ == "remote":
+        # Heroku deployed app run:
+        serve(app, host='127.0.0.1', port=5000)
+    else:
+        # Local app run:
+        serve(app, host='0.0.0.0', port=80, threads=4)
