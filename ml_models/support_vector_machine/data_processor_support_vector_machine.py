@@ -17,6 +17,7 @@ TEMP_FILE_PATH = '../../data_preparation/reviews_with_ranks.csv'
 CZECH_STOPWORDS_FILE_PATH = '../../data_preparation/czech_stopwords.txt'
 PERSIST_MODEL_TO_FILE = False
 
+
 def _read_temp_file_generator():
     """
     read temp file generator
@@ -30,9 +31,10 @@ def _read_temp_file_generator():
             yield '#NA'
 
 
-def support_vector_machine():
+def support_vector_machine(PERSIST_MODEL_TO_FILE):
     """
     function for training and testing the ML model
+    :param PERSIST_MODEL_TO_FILE:
     :return:
     """
     temp_file_reviews_work = []
@@ -73,6 +75,9 @@ def support_vector_machine():
     gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
     gs_clf = gs_clf.fit(Train_X, Train_Y)
 
+    if PERSIST_MODEL_TO_FILE:
+        pickle.dump(gs_clf, open('model.pkl','wb'))
+
     # # accuracy score calculation: 0.822
     # print(np.mean(predicted == Test_Y))
     # print(metrics.classification_report(Test_Y, predicted, target_names = ['neg', 'pos']))
@@ -82,9 +87,8 @@ def support_vector_machine():
     # print(input_string)
     # print("prediction: {}". format(gs_clf.predict([input_string])[0]))
 
-
-    if PERSIST_MODEL_TO_FILE:
-        pickle.dump(gs_clf, open('model.pkl','wb'))
+    return np.mean(predicted == Test_Y)
 
 
-support_vector_machine()
+if __name__ == "__main__":
+    support_vector_machine(PERSIST_MODEL_TO_FILE)

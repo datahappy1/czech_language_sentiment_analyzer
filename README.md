@@ -27,11 +27,12 @@ This application backend is written in Python using the `Flask` framework and `B
 
 ##### TODOs
 <ul>
-    <li>Czech word lemmatizer / stemmatizer module</li>
+    <li>Implement sending feedback in case of wrong results, so ML models re-train job can run on a schedule</li>
     <li>Remove reviews written in Slovak language</li>
-    <li>Ensembling instead of weighted model precision average for overall sentiment</li>
     <li>Add tests</li>
-    <li>Redis could replace Sqlite3</li>
+    <li>Czech word lemmatizer / stemmatizer module</li>
+    <li>Ensembling instead of weighted model precision average for overall sentiment</li>
+    <li>Redis could replace Sqlite3 / Postgres</li>
 </ul>
 
 ##### Useful links

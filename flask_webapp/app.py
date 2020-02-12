@@ -4,13 +4,18 @@ __main__.py
 import os
 import pickle
 import sqlite3
+import psycopg2
 from datetime import date, datetime, timedelta
 from flask import Flask, render_template, send_from_directory, request, jsonify, g
 from flaskext.markdown import Markdown
 from flask_caching import Cache
 from waitress import serve
 from utils.utils import _read_czech_stopwords, _replace_all
-from flask_webapp.database.db_sqlite import DB_FILE_LOC, db_builder, Query
+from flask_webapp.database import __env__
+from flask_webapp.database.db_common import Query
+from flask_webapp.database.local_sqlite import DB_FILE_LOC, db_builder as local_db_builder
+from flask_webapp.database.remote_postgres import DB_URL, db_builder as remote_db_builder
+
 
 app = Flask(__name__)
 
@@ -50,13 +55,19 @@ PRECISION_LR_WEIGHT_AVG = PRECISION_LR / PRECISION_SUM
 PRECISION_SVM_WEIGHT_AVG = PRECISION_SVM / PRECISION_SUM
 
 # build the DB
-db_builder()
+if __env__ == "remote":
+    remote_db_builder()
+else:
+    local_db_builder()
 
 
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect(DB_FILE_LOC)
+        if __env__ == "remote":
+            db = g._database = psycopg2.connect(DB_URL)
+        else:
+            db = g._database = sqlite3.connect(DB_FILE_LOC)
     return db
 
 
@@ -242,17 +253,17 @@ def methodology():
 
 @app.route('/stats/<string:period>/', methods=['GET'])
 @app.cache.cached(timeout=60)  # cache this view for 1 minute
-def stats(period="week"):
+def stats(period="day"):
     """
     the route rendering stats
     :return:
     """
 
     # prepare the select stats query argument
-    if period == "week":
-        period_from = date.today() - timedelta(weeks=1)
-    elif period == "day":
+    if period == "day":
         period_from = date.today() - timedelta(days=1)
+    elif period == "week":
+        period_from = date.today() - timedelta(weeks=1)
     elif period == "month":
         period_from = date.today() - timedelta(weeks=4)
     elif period == "all":

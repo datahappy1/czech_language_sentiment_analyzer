@@ -27,9 +27,10 @@ def _read_temp_file_generator():
             yield '#NA'
 
 
-def naive_bayes():
+def naive_bayes(PERSIST_MODEL_TO_FILE):
     """
     function for training and testing the ML model
+    :param PERSIST_MODEL_TO_FILE:
     :return:
     """
     temp_file_reviews_work = []
@@ -59,9 +60,13 @@ def naive_bayes():
     nb = MultinomialNB()
     nb.fit(Train_X, Train_Y)
 
+    if PERSIST_MODEL_TO_FILE:
+        pickle.dump(vect, open('vectorizer.pkl', 'wb'))
+        pickle.dump(nb, open('model.pkl','wb'))
+
     # # accuracy score calculation: 0.896
-    # predictions = nb.predict(Test_X)
-    # fpr, tpr, thresholds = metrics.roc_curve([x for x in Test_Y], predictions, pos_label=1)
+    predictions = nb.predict(Test_X)
+    fpr, tpr, thresholds = metrics.roc_curve([x for x in Test_Y], predictions, pos_label=1)
     # print("Multinomial naive bayes AUC: {0}".format(metrics.auc(fpr, tpr)))
 
     # # adhoc input prediction:
@@ -70,9 +75,9 @@ def naive_bayes():
     # print(input_string)
     # print("prediction: {}". format(nb.predict(vect.transform(input_string))))
 
-    if PERSIST_MODEL_TO_FILE:
-        pickle.dump(vect, open('vectorizer.pkl', 'wb'))
-        pickle.dump(nb, open('model.pkl','wb'))
+    # return accuracy score
+    return metrics.auc(fpr, tpr)
 
 
-naive_bayes()
+if __name__ == "__main__":
+    naive_bayes(PERSIST_MODEL_TO_FILE)

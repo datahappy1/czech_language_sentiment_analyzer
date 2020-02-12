@@ -17,7 +17,7 @@
                     class="alert alert-danger"
                  {% endif %}
                  {% if value.get('sentiment') =="uncertain" %}
-                    class="alert alert-warning"
+                    class="alert alert-secondary"
                  {% endif %}
             role="alert" >
                 {{ key }} : <b>{{ value.get('sentiment') }}</b>

@@ -26,9 +26,10 @@ def _read_temp_file_generator():
             yield '#NA'
 
 
-def logistic_regression():
+def logistic_regression(PERSIST_MODEL_TO_FILE):
     """
     function for training and testing the ML model
+    :param PERSIST_MODEL_TO_FILE:
     :return:
     """
     temp_file_reviews_work = []
@@ -60,8 +61,12 @@ def logistic_regression():
     lr = grid.best_estimator_
     lr.fit(Train_X, Train_Y)
 
+    if PERSIST_MODEL_TO_FILE:
+        pickle.dump(vect, open('vectorizer.pkl', 'wb'))
+        pickle.dump(lr, open('model.pkl','wb'))
+
     # # accuracy score calculation: 0.840
-    # lr.predict(Test_X)
+    lr.predict(Test_X)
     # print("Score: {:.2f}".format(lr.score(Test_X, Test_Y)))
 
     # # adhoc input prediction:
@@ -70,9 +75,9 @@ def logistic_regression():
     # print(input_string)
     # print("prediction: {}". format(lr.predict(vect.transform(input_string))))
 
-    if PERSIST_MODEL_TO_FILE:
-        pickle.dump(vect, open('vectorizer.pkl', 'wb'))
-        pickle.dump(lr, open('model.pkl','wb'))
+    # return accuracy score
+    return lr.score(Test_X, Test_Y)
 
 
-logistic_regression()
+if __name__ == "__main__":
+    logistic_regression(PERSIST_MODEL_TO_FILE)
