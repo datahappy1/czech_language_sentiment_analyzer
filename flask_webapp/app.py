@@ -190,7 +190,12 @@ def main():
             # store the stats data in Sqlite3/Postgres based on __venv__
             cur = get_db().cursor()
             data_tuple = (datetime.now(), sentiment_result.get('overall_sentiment').get('sentiment'))
-            cur.execute(Query.DB_INSERT_STATS_QUERY, data_tuple)
+            # TODO FIX
+            if __env__ == "remote":
+                cur.execute(Query.DB_INSERT_STATS_QUERY_POSTGRES, data_tuple)
+            else:
+                cur.execute(Query.DB_INSERT_STATS_QUERY_SQLITE, data_tuple)
+
             get_db().commit()
 
             return render_template('index.html',

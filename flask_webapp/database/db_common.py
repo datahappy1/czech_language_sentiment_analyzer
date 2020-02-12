@@ -4,19 +4,28 @@ class Query:
     DROP TABLE IF EXISTS stats; """
 
     # create the stats table
-    DB_CREATE_TABLE = """
+    DB_CREATE_TABLE_SQLITE = """
     CREATE TABLE IF NOT EXISTS stats (
     id integer PRIMARY KEY AUTOINCREMENT,
     request_datetime timestamp NOT NULL,
     sentiment_prediction string NOT NULL); """
+
+    DB_CREATE_TABLE_POSTGRES = """
+    CREATE TABLE IF NOT EXISTS stats(
+    id SMALLSERIAL,
+    request_datetime TIMESTAMP NOT NULL,
+    sentiment_prediction VARCHAR NOT NULL); """
 
     # get max(id) query
     DB_SELECT_MAX_ID_QUERY = """
     SELECT max(id) as max_id FROM stats;"""
 
     # insert into stats query
-    DB_INSERT_STATS_QUERY = """
+    DB_INSERT_STATS_QUERY_SQLITE = """
     INSERT INTO 'stats'('request_datetime', 'sentiment_prediction') VALUES (?, ?);"""
+
+    DB_INSERT_STATS_QUERY_POSTGRES = """
+    INSERT INTO stats ("request_datetime", "sentiment_prediction") VALUES (?, ?);"""
 
     # get the stats queries
     DB_SELECT_STATS_QUERY_PIE_CHART = """
