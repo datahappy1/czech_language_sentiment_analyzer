@@ -3,7 +3,8 @@ import urllib.parse as urlparse
 import os
 from flask_webapp.database.db_common import Query
 
-DB_URL = urlparse.urlparse(os.environ.get('DATABASE_URL'))
+DB_URL = os.environ.get('DATABASE_URL')
+DB_URL_PARSED = urlparse.urlparse(os.environ.get('DATABASE_URL'))
 
 
 def create_connection(db_url):
@@ -78,7 +79,7 @@ def run_statement_no_return(conn, statement):
 
 def db_builder():
     # create a database connection
-    conn = create_connection(DB_URL)
+    conn = create_connection(DB_URL_PARSED)
 
     # drop and re-create table
     if conn is not None:
