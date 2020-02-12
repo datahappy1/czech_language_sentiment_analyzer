@@ -20,14 +20,13 @@ API_PREFIX = '/api/v1/'
 app.config['czech_stopwords'] = _read_czech_stopwords(czech_stopwords_file_path=
                                                       'data_preparation/czech_stopwords.txt')
 
-# setup Markdown ext.
+# bind flask-markdown extension to your app
 Markdown(app)
 
 # setup Cache ext.
-# define the cache config keys, remember that it can be done in a settings file
 app.config['CACHE_TYPE'] = 'simple'
 
-# register the cache instance and binds it on to your app
+# register the cache instance and bind it to your app
 app.cache = Cache(app)
 
 # load the markdown file content for /methodology
