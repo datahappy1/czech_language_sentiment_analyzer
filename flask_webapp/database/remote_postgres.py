@@ -1,104 +1,66 @@
 import psycopg2
-import urllib.parse as urlparse
-import os
-from flask_webapp.database.db_common import Query
-
-DB_URL = os.environ.get('DATABASE_URL')
-DB_URL_PARSED = urlparse.urlparse(os.environ.get('DATABASE_URL'))
 
 
 def create_connection(db_url):
-    dbname = db_url.path[1:]
+    """ create a database connection to the Postgres database
+        specified by db_url
+    :param db_url: database url
+    :return: Connection object or None
+    """
+    db_name = db_url.path[1:]
     user = db_url.username
     password = db_url.password
     host = db_url.hostname
     port = db_url.port
-
     conn = None
 
     try:
         conn = psycopg2.connect(
-            dbname=dbname,
+            dbname=db_name,
             user=user,
             password=password,
             host=host,
-            port=port
+            port=port,
+            sslmode='require'
         )
-        conn.autocommit = True
-        return conn
+
     except psycopg2.Error as e:
         print(e)
 
     return conn
-
-def run_statement_fetchone(conn, statement):
-    """
-
-    :param conn:
-    :param statement:
-    :return:
-    """
-    output = []
-    try:
-        c = conn.cursor()
-        c.execute(statement)
-        output = c.fetchone()
-    except psycopg2.Error as e:
-        print(e)
-    return output
-
-
-def run_statement_fetchall(conn, statement):
-    """
-
-    :param conn:
-    :param statement:
-    :return:
-    """
-    output = []
-    try:
-        c = conn.cursor()
-        c.execute(statement)
-        output = c.fetchall()
-    except psycopg2.Error as e:
-        print(e)
-    return output
 
 
 def run_statement_no_return(conn, statement):
     """ run a provided statement
     :param conn: Connection object
     :param statement:
-    :return:
+    :return:0
     """
     try:
         c = conn.cursor()
         c.execute(statement)
         conn.commit()
+
     except psycopg2.Error as e:
         print(e)
 
+    return 0
 
-def db_builder():
-    # create a database connection
-    conn = create_connection(DB_URL_PARSED)
 
-    # drop and re-create table
-    # if conn is not None:
-        # _table_exists = run_statement_fetchone(conn, Query.DB_CHECK_TABLE_EXISTS)
-        #
-        # if _table_exists:
-        #     # check the max(id) in stats table
-        #     _max_id = run_statement_fetchone(conn, Query.DB_SELECT_MAX_ID_QUERY)[0]
-        #
-        #     if _max_id > 7000:
-        #         # drop stats table
-        #         run_statement_no_return(conn, Query.DB_DROP_TABLE)
-        #         print(f"Dropped the stats table, max(id): {_max_id}")
+def run_statement_fetchall(conn, statement, arguments):
+    """ run a provided statement
+    :param conn:
+    :param statement:
+    :return: fetched rows list
+    """
+    output = []
 
-        # create stats table
-    run_statement_no_return(conn, Query.DB_CREATE_TABLE_POSTGRES)
+    try:
+        c = conn.cursor()
+        c.execute(statement, [arguments])
+        output = c.fetchall()
 
-    conn.close()
-    # else:
-    #     print("Error! cannot create the database connection.")
+    except psycopg2.Error as e:
+        print(e)
+
+    return output

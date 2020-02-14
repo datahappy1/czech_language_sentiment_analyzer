@@ -22,7 +22,9 @@
             role="alert" >
                 {{ key }} : <b>{{ value.get('sentiment') }}</b>
                 <a id="link_show_details" href="#" onclick="show_details()" style="display:block;">show details</a>
-                <span id="span_with_details" style="display:none;">probability: {{ value.get('probability') }} </span>
+                <span id="span_with_details" style="display:none;">probability: {{ value.get('probability') }}
+                    (0 = 100% positive sentiment, 1 = 100% negative sentiment)
+                </span>
             </div>
         {% endfor %}
 

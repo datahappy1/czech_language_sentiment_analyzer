@@ -1,8 +1,5 @@
 import sqlite3
 from sqlite3 import Error
-from flask_webapp.database.db_common import Query
-
-DB_FILE_LOC = "flask_webapp/database/stats.db"
 
 
 def create_connection(db_file):
@@ -12,36 +9,47 @@ def create_connection(db_file):
     :return: Connection object or None
     """
     conn = None
+
     try:
         conn = sqlite3.connect(db_file)
         return conn
+
     except Error as e:
         print(e)
 
     return conn
 
 
-def create_table(conn, create_table_sql):
-    """ create a table from the create_table_sql statement
+def run_statement_no_return(conn, statement):
+    """ run a provided statement
     :param conn: Connection object
-    :param create_table_sql: a CREATE TABLE statement
-    :return:
+    :param statement:
+    :return:0
     """
     try:
         c = conn.cursor()
-        c.execute(create_table_sql)
+        c.execute(statement)
+
     except Error as e:
         print(e)
 
+    return 0
 
-def db_builder():
-    # create a database connection
-    conn = create_connection(DB_FILE_LOC)
 
-    # create tables
-    if conn is not None:
-        # create projects table
-        create_table(conn, Query.DB_CREATE_TABLE_SQLITE)
-        conn.close()
-    else:
-        print("Error! cannot create the database connection.")
+def run_statement_fetchall(conn, statement, arguments):
+    """ run a provided statement
+    :param conn:
+    :param statement:
+    :return: fetched rows list
+    """
+    output = []
+
+    try:
+        c = conn.cursor()
+        c.execute(statement, [arguments])
+        output = c.fetchall()
+
+    except Error as e:
+        print(e)
+
+    return output

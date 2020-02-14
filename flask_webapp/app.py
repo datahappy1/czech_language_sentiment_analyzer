@@ -3,8 +3,6 @@ __main__.py
 """
 import os
 import pickle
-import sqlite3
-import psycopg2
 from datetime import date, datetime, timedelta
 from flask import Flask, render_template, send_from_directory, request, jsonify, g
 from flaskext.markdown import Markdown
@@ -12,9 +10,7 @@ from flask_caching import Cache
 from waitress import serve
 from utils.utils import _read_czech_stopwords, _replace_all
 from flask_webapp.database import __env__
-from flask_webapp.database.db_common import Query
-from flask_webapp.database.local_sqlite import DB_FILE_LOC, db_builder as local_db_builder
-from flask_webapp.database.remote_postgres import DB_URL, db_builder as remote_db_builder
+from flask_webapp.database.db_abstraction import Database
 
 
 app = Flask(__name__)
@@ -55,19 +51,14 @@ PRECISION_LR_WEIGHT_AVG = PRECISION_LR / PRECISION_SUM
 PRECISION_SVM_WEIGHT_AVG = PRECISION_SVM / PRECISION_SUM
 
 # build the DB
-if __env__ == "remote":
-    remote_db_builder()
-else:
-    local_db_builder()
+Db_obj = Database(__env__)
+Database.db_builder(Db_obj)
 
 
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        if __env__ == "remote":
-            db = g._database = psycopg2.connect(DB_URL, sslmode='require')
-        else:
-            db = g._database = sqlite3.connect(DB_FILE_LOC)
+        db = g._database = Database.connect(Db_obj)
     return db
 
 
@@ -101,9 +92,9 @@ def _ml_model_evaluator(input_string):
     # prediction_logistic_regression = MODEL_LR.predict(VECTOR_LR.transform(input_string))
     # prediction_support_vector_machine = MODEL_SVM.predict(input_string)
 
-    prediction_naive_bayes_prob = MODEL_NB.predict_proba(VECTOR_NB.transform(input_string))[0][0]
-    prediction_logistic_regression_prob = MODEL_LR.predict_proba(VECTOR_LR.transform(input_string))[0][0]
-    prediction_support_vector_machine_prob = MODEL_SVM.predict_proba(input_string)[0][0]
+    prediction_naive_bayes_prob = float(MODEL_NB.predict_proba(VECTOR_NB.transform(input_string))[0][0])
+    prediction_logistic_regression_prob = float(MODEL_LR.predict_proba(VECTOR_LR.transform(input_string))[0][0])
+    prediction_support_vector_machine_prob = float(MODEL_SVM.predict_proba(input_string)[0][0])
 
     prediction_output_overall_proba = (prediction_naive_bayes_prob * PRECISION_NB_WEIGHT_AVG) + \
                                       (prediction_logistic_regression_prob * PRECISION_LR_WEIGHT_AVG) + \
@@ -187,15 +178,9 @@ def main():
             input_text_list = ' '.join(input_text_list)
             sentiment_result = _ml_model_evaluator([input_text_list])
 
-            # store the stats data in Sqlite3/Postgres based on __venv__
             cur = get_db().cursor()
             data_tuple = (datetime.now(), sentiment_result.get('overall_sentiment').get('sentiment'))
-            # TODO FIX
-            if __env__ == "remote":
-                cur.execute(Query.DB_INSERT_STATS_QUERY_POSTGRES, data_tuple)
-            else:
-                cur.execute(Query.DB_INSERT_STATS_QUERY_SQLITE, data_tuple)
-
+            cur.execute(Db_obj.db_insert_stats_query, data_tuple)
             get_db().commit()
 
             return render_template('index.html',
@@ -205,6 +190,7 @@ def main():
             return render_template('index.html',
                                    template_input_string=input_text,
                                    template_error_message="More words for analysis needed")
+
 
 @app.route(f'{API_PREFIX}prediction/', methods=['POST'])
 def api():
@@ -279,10 +265,10 @@ def stats(period="day"):
 
     # fetch the stats data from sqlite3
     cur = get_db().cursor()
-    cur.execute(Query.DB_SELECT_STATS_QUERY_PIE_CHART, [period_from])
+    cur.execute(Db_obj.db_select_stats_query_pie_chart, [period_from])
     pie_chart_raw_data = cur.fetchall()
 
-    cur.execute(Query.DB_SELECT_STATS_QUERY_TIME_SERIES, [period_from])
+    cur.execute(Db_obj.db_select_stats_query_time_series, [period_from])
     time_series_raw_data = cur.fetchall()
 
     return render_template('stats.html',
