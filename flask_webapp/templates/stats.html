@@ -25,7 +25,10 @@
     <div class="container">
         <div class="row">
             <div class="col">
-                <canvas id="pieChart"></canvas>
+                <canvas id="pieChartSource"></canvas>
+            </div>
+            <div class="col">
+                <canvas id="pieChartSentiment"></canvas>
             </div>
             <div class="col">
                 <canvas id="stackedChart"></canvas>
@@ -34,16 +37,36 @@
     </div>
 
     <script>
-        var ctx = document.getElementById('pieChart').getContext('2d');
+        var ctx = document.getElementById('pieChartSource').getContext('2d');
         var myPieChart = new Chart(ctx, {
             type: 'pie',
             data: {
-              labels: {{ template_pie_chart_labels | tojson }},
+              labels: {{ template_pie_chart_labels_source | tojson }},
+              datasets: [{
+                label: "requests source",
+                // sorted by keys in order this order: api, website
+                backgroundColor: ["#6666ff", "#ffcc00"],
+                data: {{ template_pie_chart_data_source }}
+              }]
+            },
+            options: {
+              title: {
+                display: true,
+                text: 'requests source'
+              }
+            }
+        });
+
+        var ctx = document.getElementById('pieChartSentiment').getContext('2d');
+        var myPieChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+              labels: {{ template_pie_chart_labels_sentiment | tojson }},
               datasets: [{
                 label: "overall sentiment",
                 // sorted by keys in order this order: negative, positive, uncertain
                 backgroundColor: ["#ff4d4d", "#99e699", "#d9d9d9"],
-                data: {{ template_pie_chart_data }}
+                data: {{ template_pie_chart_data_sentiment }}
               }]
             },
             options: {

@@ -69,15 +69,16 @@ def close_connection(exception):
         db.close()
 
 
-def _write_stats_to_table(sentiment_result):
+def _write_stats_to_table(source, sentiment_result):
     """
     function storing stats data in a table
+    :param source: api or website
     :param sentiment_result:
     :return:
     """
     try:
         cur = get_db().cursor()
-        data_tuple = (datetime.now(), sentiment_result)
+        data_tuple = (datetime.now(), source, sentiment_result)
         cur.execute(Db_obj.db_insert_stats_query, data_tuple)
         get_db().commit()
     except Exception:
@@ -194,7 +195,8 @@ def main():
             input_text_list = ' '.join(input_text_list)
             sentiment_result = _ml_model_evaluator([input_text_list])
 
-            _write_stats_to_table(sentiment_result.get('overall_sentiment').get('sentiment'))
+            _write_stats_to_table(source='website',
+                                  sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment'))
 
             return render_template('index.html',
                                    template_input_string=input_text,
@@ -219,6 +221,10 @@ def api():
         if len(input_text_list) > 2 and [i for i in input_text_list if len(i) > 3]:
             input_text_list = ' '.join(input_text_list)
             sentiment_result = _ml_model_evaluator([input_text_list])
+
+            _write_stats_to_table(source='api',
+                                  sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment'))
+
             response = jsonify({
                 'status': 200,
                 'sentiment_result': sentiment_result,
@@ -276,18 +282,24 @@ def stats(period="day"):
     else:
         period_from = datetime.today() - timedelta(days=1)
 
-    # fetch the stats data from sqlite3
+    # fetch the stats data from the DB
     cur = get_db().cursor()
-    cur.execute(Db_obj.db_select_stats_query_pie_chart, [period_from])
-    pie_chart_raw_data = cur.fetchall()
+
+    cur.execute(Db_obj.db_select_stats_query_pie_chart_source, [period_from])
+    pie_chart_raw_data_source = cur.fetchall()
+
+    cur.execute(Db_obj.db_select_stats_query_pie_chart_sentiment, [period_from])
+    pie_chart_raw_data_sentiment = cur.fetchall()
 
     cur.execute(Db_obj.db_select_stats_query_time_series, [period_from])
     time_series_raw_data = cur.fetchall()
 
     return render_template('stats.html',
                            template_period=period,
-                           template_pie_chart_data=[x[0] for x in pie_chart_raw_data],
-                           template_pie_chart_labels=[x[1] for x in pie_chart_raw_data],
+                           template_pie_chart_data_source=[x[0] for x in pie_chart_raw_data_source],
+                           template_pie_chart_labels_source=[x[1] for x in pie_chart_raw_data_source],
+                           template_pie_chart_data_sentiment=[x[0] for x in pie_chart_raw_data_sentiment],
+                           template_pie_chart_labels_sentiment=[x[1] for x in pie_chart_raw_data_sentiment],
                            template_time_series_data_positive=[x[0] for x in time_series_raw_data if x[1] == "positive"],
                            template_time_series_data_negative=[x[0] for x in time_series_raw_data if x[1] == "negative"],
                            template_time_series_data_uncertain=[x[0] for x in time_series_raw_data if x[1] == "uncertain"],
