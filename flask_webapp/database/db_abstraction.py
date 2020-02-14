@@ -44,11 +44,11 @@ class QueryRemote:
     ORDER BY sentiment_prediction ;"""
 
     DB_SELECT_STATS_QUERY_TIME_SERIES_POSTGRES = """
-    SELECT count(*) as cnt, sentiment_prediction, date(request_datetime) as 'DATE()' 
+    SELECT count(*) as cnt, sentiment_prediction, to_date(request_datetime, 'DD-MM-YYYY')' 
     FROM stats 
     WHERE request_datetime >= %s
-    GROUP BY sentiment_prediction, date(request_datetime) 
-    ORDER BY date(request_datetime) ;"""
+    GROUP BY sentiment_prediction, to_date(request_datetime, 'DD-MM-YYYY')
+    ORDER BY to_date(request_datetime, 'DD-MM-YYYY') ;"""
 
 
 class QueryLocal:
@@ -152,6 +152,8 @@ class Database:
         return run_statement_fetchall
 
     def db_builder(self):
+        # make the db_builder one execute script, remove connect,close,run_statement_fetchall methods TODO
+
         # connect
         self.connect()
 
