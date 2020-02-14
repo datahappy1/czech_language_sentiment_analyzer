@@ -4,8 +4,8 @@ multithreaded HTML scraping module. To have the data balanced with the same amou
 final dataset had to be reduced to 14k positive and 14k negative reviews.
  This dataset was scrubbed agains a collection of Czech stopwords. 
 
-##### Models
-From `Scikit-Learn` Python library, `Naive Bayes`, `Logistic regression` and `Support Vector Machine` models were used
+##### ML Models
+From `Scikit-Learn` Python library, `Naive Bayes`, `Logistic regression` and `Support Vector Machine` ML models were used
 for training and testing data for text sentiment analysis.
 The scripts for training and testing are located here: 
 <ul>

@@ -30,25 +30,25 @@ class QueryRemote:
 
     # insert into stats query
     DB_INSERT_STATS_QUERY_POSTGRES = """
-    INSERT INTO stats ("request_datetime", "sentiment_prediction") VALUES (?, ?);"""
+    INSERT INTO stats ("request_datetime", "sentiment_prediction") VALUES (%s, %s);"""
 
     DB_SELECT_STATS_QUERY_PIE_CHART_POSTGRES = """
     SELECT sum(i.cnt) as cnt, sentiment_prediction
     FROM 
       (SELECT 1 as cnt, sentiment_prediction 
        FROM stats 
-       WHERE request_datetime >= %s
+       WHERE request_datetime::timestamp >= %s
        UNION ALL SELECT 0 as cnt, 'negative' as sentiment_prediction
        UNION ALL SELECT 0 as cnt, 'positive' as sentiment_prediction) i
     GROUP BY sentiment_prediction
     ORDER BY sentiment_prediction ;"""
 
     DB_SELECT_STATS_QUERY_TIME_SERIES_POSTGRES = """
-    SELECT count(*) as cnt, sentiment_prediction, to_date(request_datetime, 'DD-MM-YYYY')' 
+    SELECT count(*) as cnt, sentiment_prediction, request_datetime::timestamp::date
     FROM stats 
-    WHERE request_datetime >= %s
-    GROUP BY sentiment_prediction, to_date(request_datetime, 'DD-MM-YYYY')
-    ORDER BY to_date(request_datetime, 'DD-MM-YYYY') ;"""
+    WHERE request_datetime::timestamp >= %s
+    GROUP BY sentiment_prediction, request_datetime::timestamp::date
+    ORDER BY request_datetime::timestamp::date ;"""
 
 
 class QueryLocal:
@@ -115,9 +115,11 @@ class Database:
             db_url = os.environ.get('DATABASE_URL')
             db_url_parsed = urlparse.urlparse(db_url)
             self.conn = remote_postgres.create_connection(db_url_parsed)
+
         elif self.environment == "local":
             db_file_loc = "flask_webapp/database/stats.db"
             self.conn = local_sqlite.create_connection(db_file_loc)
+
         else:
             raise NotImplementedError
         return self.conn

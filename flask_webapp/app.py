@@ -69,6 +69,22 @@ def close_connection(exception):
         db.close()
 
 
+def _write_stats_to_table(sentiment_result):
+    """
+    function storing stats data in a table
+    :param sentiment_result:
+    :return:
+    """
+    try:
+        cur = get_db().cursor()
+        data_tuple = (datetime.now(), sentiment_result)
+        cur.execute(Db_obj.db_insert_stats_query, data_tuple)
+        get_db().commit()
+    except Exception:
+        # storing the stats cannot block the user from retrieving sentiment
+        pass
+
+
 def _input_string_preparator(input_string):
     """
     function for input string preparation
@@ -92,13 +108,13 @@ def _ml_model_evaluator(input_string):
     # prediction_logistic_regression = MODEL_LR.predict(VECTOR_LR.transform(input_string))
     # prediction_support_vector_machine = MODEL_SVM.predict(input_string)
 
-    prediction_naive_bayes_prob = float(MODEL_NB.predict_proba(VECTOR_NB.transform(input_string))[0][0])
-    prediction_logistic_regression_prob = float(MODEL_LR.predict_proba(VECTOR_LR.transform(input_string))[0][0])
-    prediction_support_vector_machine_prob = float(MODEL_SVM.predict_proba(input_string)[0][0])
+    prediction_naive_bayes_prob = MODEL_NB.predict_proba(VECTOR_NB.transform(input_string))[0][0]
+    prediction_logistic_regression_prob = MODEL_LR.predict_proba(VECTOR_LR.transform(input_string))[0][0]
+    prediction_support_vector_machine_prob = MODEL_SVM.predict_proba(input_string)[0][0]
 
-    prediction_output_overall_proba = (prediction_naive_bayes_prob * PRECISION_NB_WEIGHT_AVG) + \
+    prediction_output_overall_proba = round((prediction_naive_bayes_prob * PRECISION_NB_WEIGHT_AVG) + \
                                       (prediction_logistic_regression_prob * PRECISION_LR_WEIGHT_AVG) + \
-                                      (prediction_support_vector_machine_prob * PRECISION_SVM_WEIGHT_AVG)
+                                      (prediction_support_vector_machine_prob * PRECISION_SVM_WEIGHT_AVG), 2)
 
     if prediction_output_overall_proba < 0.48:
         prediction_output['overall_sentiment'] = {'sentiment': 'positive',
@@ -178,10 +194,7 @@ def main():
             input_text_list = ' '.join(input_text_list)
             sentiment_result = _ml_model_evaluator([input_text_list])
 
-            cur = get_db().cursor()
-            data_tuple = (datetime.now(), sentiment_result.get('overall_sentiment').get('sentiment'))
-            cur.execute(Db_obj.db_insert_stats_query, data_tuple)
-            get_db().commit()
+            _write_stats_to_table(sentiment_result.get('overall_sentiment').get('sentiment'))
 
             return render_template('index.html',
                                    template_input_string=input_text,
@@ -284,7 +297,7 @@ def stats(period="day"):
 
 if __name__ == "__main__":
     # # Local app run:
-    # serve(app, host='0.0.0.0', port=80, threads=4)
+    serve(app, host='0.0.0.0', port=80, threads=4)
 
     # Heroku deployed app run:
-    serve(app, host='127.0.0.1', port=5000)
+    # serve(app, host='127.0.0.1', port=5000)
