@@ -7,7 +7,7 @@
         <ul>
             <li><a href="{{ url_for('stats', period='day') }}"
                    {% if template_period=="day" %} class="font-weight-bold" {% endif %}>
-                today</a></li>
+                last 24 hours</a></li>
             <li><a href="{{ url_for('stats', period='week') }}"
                    {% if template_period=="week" %} class="font-weight-bold" {% endif %}>
                 last week</a></li>
@@ -45,7 +45,7 @@
               datasets: [{
                 label: "requests source",
                 // sorted by keys in order this order: api, website
-                backgroundColor: ["#6666ff", "#ffcc00"],
+                backgroundColor: ["#0099cc", "#b3cccc"],
                 data: {{ template_pie_chart_data_source }}
               }]
             },

@@ -8,9 +8,9 @@ class QueryCommon:
     DB_DROP_TABLE = """
     DROP TABLE IF EXISTS stats; """
 
-    # get max(id) query
-    DB_SELECT_MAX_ID_QUERY = """
-    SELECT max(id) as max_id FROM stats;"""
+    # select count(*) query
+    DB_SELECT_COUNT_ROWS_QUERY = """
+    SELECT count(*) FROM stats;"""
 
 
 class QueryRemote:
@@ -30,37 +30,13 @@ class QueryRemote:
 
     # insert into stats query
     DB_INSERT_STATS_QUERY = """
-    INSERT INTO stats ("request_datetime", "source", "sentiment_prediction") VALUES (%s, %s, %s);"""
+    INSERT INTO stats ("request_datetime", "source", "sentiment_prediction") VALUES (%s, %s, %s); """
 
-    DB_SELECT_STATS_QUERY_PIE_CHART_SOURCE = """
-    SELECT sum(i.cnt) as cnt, source
-    FROM 
-      (SELECT 1 as cnt, source 
-       FROM stats 
-       WHERE request_datetime::timestamp >= %s
-       UNION ALL SELECT 0 as cnt, 'api' as source
-       UNION ALL SELECT 0 as cnt, 'website' as source) i
-    GROUP BY source
-    ORDER BY source ;"""
-
-
-    DB_SELECT_STATS_QUERY_PIE_CHART_SENTIMENT = """
-    SELECT sum(i.cnt) as cnt, sentiment_prediction
-    FROM 
-      (SELECT 1 as cnt, sentiment_prediction 
-       FROM stats 
-       WHERE request_datetime::timestamp >= %s
-       UNION ALL SELECT 0 as cnt, 'negative' as sentiment_prediction
-       UNION ALL SELECT 0 as cnt, 'positive' as sentiment_prediction) i
-    GROUP BY sentiment_prediction
-    ORDER BY sentiment_prediction ;"""
-
-    DB_SELECT_STATS_QUERY_TIME_SERIES = """
-    SELECT count(*) as cnt, sentiment_prediction, to_char("request_datetime", 'YYYY-MM-DD')
-    FROM stats 
-    WHERE request_datetime::timestamp >= %s
-    GROUP BY sentiment_prediction, to_char("request_datetime", 'YYYY-MM-DD')
-    ORDER BY to_char("request_datetime", 'YYYY-MM-DD') ;"""
+    # select raw stats data
+    DB_SELECT_RAW_STATS_DATA = """
+    SELECT to_char("request_datetime", 'YYYY-MM-DD'), source, sentiment_prediction 
+    FROM stats
+    WHERE request_datetime::timestamp >= %s; """
 
 
 class QueryLocal:
@@ -79,61 +55,33 @@ class QueryLocal:
 
     # insert into stats query
     DB_INSERT_STATS_QUERY = """
-    INSERT INTO 'stats'('request_datetime', 'source', 'sentiment_prediction') VALUES (?, ?, ?);"""
+    INSERT INTO 'stats'('request_datetime', 'source', 'sentiment_prediction') VALUES (?, ?, ?); """
 
-    # get the stats queries
-    DB_SELECT_STATS_QUERY_PIE_CHART_SOURCE = """
-    SELECT sum(i.cnt) as cnt, source
-    FROM 
-      (SELECT 1 as cnt, source 
-       FROM stats 
-       WHERE request_datetime >= ? 
-       UNION ALL SELECT 0 as cnt, 'api' as source
-       UNION ALL SELECT 0 as cnt, 'website' as source) i
-    GROUP BY source
-    ORDER BY source ;"""
-
-    DB_SELECT_STATS_QUERY_PIE_CHART_SENTIMENT = """
-    SELECT sum(i.cnt) as cnt, sentiment_prediction
-    FROM 
-      (SELECT 1 as cnt, sentiment_prediction 
-       FROM stats 
-       WHERE request_datetime >= ? 
-       UNION ALL SELECT 0 as cnt, 'negative' as sentiment_prediction
-       UNION ALL SELECT 0 as cnt, 'positive' as sentiment_prediction) i
-    GROUP BY sentiment_prediction
-    ORDER BY sentiment_prediction ;"""
-
-    DB_SELECT_STATS_QUERY_TIME_SERIES = """
-    SELECT count(*) as cnt, sentiment_prediction, date(request_datetime) as 'DATE()' 
-    FROM stats 
-    WHERE request_datetime >= ?
-    GROUP BY sentiment_prediction, date(request_datetime) 
-    ORDER BY date(request_datetime) ;"""
+    # select raw stats data
+    DB_SELECT_RAW_STATS_DATA = """
+    SELECT date(request_datetime) as 'DATE()', source, sentiment_prediction 
+    FROM stats
+    WHERE request_datetime >= ?; """
 
 
 class Database:
     def __init__(self, env):
         self.environment = env
         self.db_drop_table = QueryCommon.DB_DROP_TABLE
-        self.db_select_max_id_query = QueryCommon.DB_SELECT_MAX_ID_QUERY
+        self.db_select_count_rows_query = QueryCommon.DB_SELECT_COUNT_ROWS_QUERY
         self.conn = None
 
         if self.environment == "remote":
             self.db_create_table = QueryRemote.DB_CREATE_TABLE
             self.db_insert_stats_query = QueryRemote.DB_INSERT_STATS_QUERY
             self.db_check_table_exists = QueryRemote.DB_CHECK_TABLE_EXISTS
-            self.db_select_stats_query_pie_chart_source = QueryRemote.DB_SELECT_STATS_QUERY_PIE_CHART_SOURCE
-            self.db_select_stats_query_pie_chart_sentiment = QueryRemote.DB_SELECT_STATS_QUERY_PIE_CHART_SENTIMENT
-            self.db_select_stats_query_time_series = QueryRemote.DB_SELECT_STATS_QUERY_TIME_SERIES
+            self.db_select_stats_query_all = QueryRemote.DB_SELECT_RAW_STATS_DATA
 
         elif self.environment == "local":
             self.db_create_table = QueryLocal.DB_CREATE_TABLE
             self.db_insert_stats_query = QueryLocal.DB_INSERT_STATS_QUERY
             self.db_check_table_exists = QueryLocal.DB_CHECK_TABLE_EXISTS
-            self.db_select_stats_query_pie_chart_source = QueryLocal.DB_SELECT_STATS_QUERY_PIE_CHART_SOURCE
-            self.db_select_stats_query_pie_chart_sentiment = QueryLocal.DB_SELECT_STATS_QUERY_PIE_CHART_SENTIMENT
-            self.db_select_stats_query_time_series = QueryLocal.DB_SELECT_STATS_QUERY_TIME_SERIES
+            self.db_select_stats_query_all = QueryLocal.DB_SELECT_RAW_STATS_DATA
 
         else:
             raise NotImplementedError
@@ -164,15 +112,15 @@ class Database:
             _table_exists = cur.fetchone()
 
             if _table_exists:
-                # check the max(id) in stats table
-                cur.execute(self.db_select_max_id_query)
-                _max_id = cur.fetchone()[0]
+                # check the count of all wors in the stats table
+                cur.execute(self.db_select_count_rows_query)
+                _rowcount = cur.fetchone()[0]
 
-                if _max_id > 7000:
-                    # drop stats table if > 7000 ids due to
+                if _rowcount > 1:
+                    # drop stats table if > 7000 rows due to
                     # Heroku Postgres free-tier limitation
                     cur.execute(self.db_drop_table)
-                    print(f"Dropped the stats table, max(id): {_max_id}")
+                    print(f"Dropped the stats table, row count: {_rowcount}")
 
             # create stats table if not exists
             cur.execute(self.db_create_table)

@@ -4,6 +4,7 @@ __main__.py
 import os
 import pickle
 from datetime import date, datetime, timedelta
+from itertools import groupby
 from flask import Flask, render_template, send_from_directory, request, jsonify, g
 from flaskext.markdown import Markdown
 from flask_caching import Cache
@@ -284,26 +285,60 @@ def stats(period="day"):
 
     # fetch the stats data from the DB
     cur = get_db().cursor()
+    cur.execute(Db_obj.db_select_stats_query_all, [period_from])
+    raw_data = cur.fetchall()
 
-    cur.execute(Db_obj.db_select_stats_query_pie_chart_source, [period_from])
-    pie_chart_raw_data_source = cur.fetchall()
+    def _chart_data_preparator(input_data_set):
+        """
+        function for transforming raw SQL fetched data
+        to Charts.js compatible data structures
+        :param input_data_set:
+        :return:
+        """
+        all_charts_output = {'pie_by_source':{'group_keys': [], 'output_data_set': []},
+                             'pie_by_sentiment': {'group_keys': [], 'output_data_set': []},
+                             'time_series': {'group_keys': [], 'output_data_set': []}}
 
-    cur.execute(Db_obj.db_select_stats_query_pie_chart_sentiment, [period_from])
-    pie_chart_raw_data_sentiment = cur.fetchall()
+        # pie chart by source
+        _sorted_data = sorted(input_data_set, key=lambda x: x[1])
+        for k, g in groupby(_sorted_data, lambda x: x[1]):
+            all_charts_output['pie_by_source']['group_keys'].append(k)
+            all_charts_output['pie_by_source']['output_data_set'].append((len(list(g)), k))
 
-    cur.execute(Db_obj.db_select_stats_query_time_series, [period_from])
-    time_series_raw_data = cur.fetchall()
+        # pie chart by sentiment
+        _sorted_data = sorted(input_data_set, key=lambda x: x[2])
+        for k, g in groupby(_sorted_data, lambda x: x[2]):
+            all_charts_output['pie_by_sentiment']['group_keys'].append(k)
+            all_charts_output['pie_by_sentiment']['output_data_set'].append((len(list(g)), k))
+
+        # time series chart
+        _sorted_data = sorted(input_data_set, key=lambda x: (x[0], x[2]))
+        for k, g in groupby(_sorted_data, lambda x: (x[0], x[2])):
+            all_charts_output['time_series']['group_keys'].append(k[0])
+            all_charts_output['time_series']['output_data_set'].append((len(list(g)), k[1], k[0]))
+
+        return all_charts_output
+
+    chart_data = _chart_data_preparator(raw_data)
 
     return render_template('stats.html',
                            template_period=period,
-                           template_pie_chart_data_source=[x[0] for x in pie_chart_raw_data_source],
-                           template_pie_chart_labels_source=[x[1] for x in pie_chart_raw_data_source],
-                           template_pie_chart_data_sentiment=[x[0] for x in pie_chart_raw_data_sentiment],
-                           template_pie_chart_labels_sentiment=[x[1] for x in pie_chart_raw_data_sentiment],
-                           template_time_series_data_positive=[x[0] for x in time_series_raw_data if x[1] == "positive"],
-                           template_time_series_data_negative=[x[0] for x in time_series_raw_data if x[1] == "negative"],
-                           template_time_series_data_uncertain=[x[0] for x in time_series_raw_data if x[1] == "uncertain"],
-                           template_time_series_labels=sorted(list(set([x[2] for x in time_series_raw_data])))
+                           template_pie_chart_data_source=
+                           [x[0] for x in chart_data.get('pie_by_source').get('output_data_set')],
+                           template_pie_chart_labels_source=
+                           chart_data.get('pie_by_source').get('group_keys'),
+                           template_pie_chart_data_sentiment=
+                           [x[0] for x in chart_data.get('pie_by_sentiment').get('output_data_set')],
+                           template_pie_chart_labels_sentiment=
+                           chart_data.get('pie_by_sentiment').get('group_keys'),
+                           template_time_series_data_positive=
+                           [x[0] for x in chart_data.get('time_series').get('output_data_set') if x[1] == "positive"],
+                           template_time_series_data_negative=
+                           [x[0] for x in chart_data.get('time_series').get('output_data_set') if x[1] == "negative"],
+                           template_time_series_data_uncertain=
+                           [x[0] for x in chart_data.get('time_series').get('output_data_set') if x[1] == "uncertain"],
+                           template_time_series_labels=
+                           sorted(list(set(chart_data.get('time_series').get('group_keys'))))
                            )
 
 
