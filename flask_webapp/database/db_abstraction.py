@@ -22,12 +22,6 @@ class QueryRemote:
     source VARCHAR NOT NULL,
     sentiment_prediction VARCHAR NOT NULL); """
 
-    # check if table exists
-    DB_CHECK_TABLE_EXISTS = """
-    SELECT 1 FROM information_schema.tables 
-    WHERE table_schema = 'czester'
-    AND table_name = 'stats'; """
-
     # insert into stats query
     DB_INSERT_STATS_QUERY = """
     INSERT INTO stats ("request_datetime", "source", "sentiment_prediction") VALUES (%s, %s, %s); """
@@ -47,11 +41,6 @@ class QueryLocal:
     request_datetime timestamp NOT NULL,
     source string NOT NULL,
     sentiment_prediction string NOT NULL); """
-
-    # check if table exists
-    DB_CHECK_TABLE_EXISTS = """
-    SELECT 1 FROM sqlite_master 
-    WHERE type='table' AND name='stats'; """
 
     # insert into stats query
     DB_INSERT_STATS_QUERY = """
@@ -74,13 +63,11 @@ class Database:
         if self.environment == "remote":
             self.db_create_table = QueryRemote.DB_CREATE_TABLE
             self.db_insert_stats_query = QueryRemote.DB_INSERT_STATS_QUERY
-            self.db_check_table_exists = QueryRemote.DB_CHECK_TABLE_EXISTS
             self.db_select_stats_query_all = QueryRemote.DB_SELECT_RAW_STATS_DATA
 
         elif self.environment == "local":
             self.db_create_table = QueryLocal.DB_CREATE_TABLE
             self.db_insert_stats_query = QueryLocal.DB_INSERT_STATS_QUERY
-            self.db_check_table_exists = QueryLocal.DB_CHECK_TABLE_EXISTS
             self.db_select_stats_query_all = QueryLocal.DB_SELECT_RAW_STATS_DATA
 
         else:
@@ -108,19 +95,16 @@ class Database:
         # drop and re-create table
         with self.conn:
             cur = self.conn.cursor()
-            cur.execute(self.db_check_table_exists)
-            _table_exists = cur.fetchone()
 
-            if _table_exists:
-                # check the count of all wors in the stats table
-                cur.execute(self.db_select_count_rows_query)
-                _rowcount = cur.fetchone()[0]
+            # check the count of all words in the stats table
+            cur.execute(self.db_select_count_rows_query)
+            _rowcount = cur.fetchone()[0]
 
-                if _rowcount > 7000:
-                    # drop stats table if > 7000 rows due to
-                    # Heroku Postgres free-tier limitation
-                    cur.execute(self.db_drop_table)
-                    print(f"Dropped the stats table, row count: {_rowcount}")
+            if _rowcount > 7000:
+                # drop stats table if > 7000 rows due to
+                # Heroku Postgres free-tier limitation
+                cur.execute(self.db_drop_table)
+                print(f"Dropped the stats table, row count: {_rowcount}")
 
             # create stats table if not exists
             cur.execute(self.db_create_table)

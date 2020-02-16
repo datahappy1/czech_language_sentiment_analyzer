@@ -70,7 +70,7 @@ def close_connection(exception):
         db.close()
 
 
-def _write_stats_to_table(source, sentiment_result):
+def _stats_to_table_writer(source, sentiment_result):
     """
     function storing stats data in a table
     :param source: api or website
@@ -129,6 +129,38 @@ def _ml_model_evaluator(input_string):
                                                   'probability': prediction_output_overall_proba}
 
     return prediction_output
+
+
+def _chart_data_preparator(input_data_set):
+    """
+    function for transforming raw SQL fetched data
+    to Charts.js compatible data structures
+    :param input_data_set:
+    :return:
+    """
+    all_charts_output = {'pie_by_source':{'group_keys': [], 'output_data_set': []},
+                         'pie_by_sentiment': {'group_keys': [], 'output_data_set': []},
+                         'time_series': {'group_keys': [], 'output_data_set': []}}
+
+    # pie chart by source
+    _sorted_data = sorted(input_data_set, key=lambda x: x[1])
+    for k, g in groupby(_sorted_data, lambda x: x[1]):
+        all_charts_output['pie_by_source']['group_keys'].append(k)
+        all_charts_output['pie_by_source']['output_data_set'].append((len(list(g)), k))
+
+    # pie chart by sentiment
+    _sorted_data = sorted(input_data_set, key=lambda x: x[2])
+    for k, g in groupby(_sorted_data, lambda x: x[2]):
+        all_charts_output['pie_by_sentiment']['group_keys'].append(k)
+        all_charts_output['pie_by_sentiment']['output_data_set'].append((len(list(g)), k))
+
+    # time series chart
+    _sorted_data = sorted(input_data_set, key=lambda x: (x[0], x[2]))
+    for k, g in groupby(_sorted_data, lambda x: (x[0], x[2])):
+        all_charts_output['time_series']['group_keys'].append(k[0])
+        all_charts_output['time_series']['output_data_set'].append((len(list(g)), k[1], k[0]))
+
+    return all_charts_output
 
 
 @app.route('/favicon.ico')
@@ -196,8 +228,8 @@ def main():
             input_text_list = ' '.join(input_text_list)
             sentiment_result = _ml_model_evaluator([input_text_list])
 
-            _write_stats_to_table(source='website',
-                                  sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment'))
+            _stats_to_table_writer(source='website',
+                                   sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment'))
 
             return render_template('index.html',
                                    template_input_string=input_text,
@@ -223,8 +255,8 @@ def api():
             input_text_list = ' '.join(input_text_list)
             sentiment_result = _ml_model_evaluator([input_text_list])
 
-            _write_stats_to_table(source='api',
-                                  sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment'))
+            _stats_to_table_writer(source='api',
+                                   sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment'))
 
             response = jsonify({
                 'status': 200,
@@ -288,37 +320,6 @@ def stats(period="day"):
     cur.execute(Db_obj.db_select_stats_query_all, [period_from])
     raw_data = cur.fetchall()
 
-    def _chart_data_preparator(input_data_set):
-        """
-        function for transforming raw SQL fetched data
-        to Charts.js compatible data structures
-        :param input_data_set:
-        :return:
-        """
-        all_charts_output = {'pie_by_source':{'group_keys': [], 'output_data_set': []},
-                             'pie_by_sentiment': {'group_keys': [], 'output_data_set': []},
-                             'time_series': {'group_keys': [], 'output_data_set': []}}
-
-        # pie chart by source
-        _sorted_data = sorted(input_data_set, key=lambda x: x[1])
-        for k, g in groupby(_sorted_data, lambda x: x[1]):
-            all_charts_output['pie_by_source']['group_keys'].append(k)
-            all_charts_output['pie_by_source']['output_data_set'].append((len(list(g)), k))
-
-        # pie chart by sentiment
-        _sorted_data = sorted(input_data_set, key=lambda x: x[2])
-        for k, g in groupby(_sorted_data, lambda x: x[2]):
-            all_charts_output['pie_by_sentiment']['group_keys'].append(k)
-            all_charts_output['pie_by_sentiment']['output_data_set'].append((len(list(g)), k))
-
-        # time series chart
-        _sorted_data = sorted(input_data_set, key=lambda x: (x[0], x[2]))
-        for k, g in groupby(_sorted_data, lambda x: (x[0], x[2])):
-            all_charts_output['time_series']['group_keys'].append(k[0])
-            all_charts_output['time_series']['output_data_set'].append((len(list(g)), k[1], k[0]))
-
-        return all_charts_output
-
     chart_data = _chart_data_preparator(raw_data)
 
     return render_template('stats.html',
@@ -344,7 +345,7 @@ def stats(period="day"):
 
 if __name__ == "__main__":
     # # Local app run:
-    # serve(app, host='0.0.0.0', port=80, threads=4)
+    serve(app, host='0.0.0.0', port=80, threads=4)
 
-    # Heroku deployed app run:
-    serve(app, host='127.0.0.1', port=5000)
+    # # Heroku deployed app run:
+    # serve(app, host='127.0.0.1', port=5000)
