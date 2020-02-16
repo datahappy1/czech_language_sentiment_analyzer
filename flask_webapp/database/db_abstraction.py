@@ -116,7 +116,7 @@ class Database:
                 cur.execute(self.db_select_count_rows_query)
                 _rowcount = cur.fetchone()[0]
 
-                if _rowcount > 1:
+                if _rowcount > 7000:
                     # drop stats table if > 7000 rows due to
                     # Heroku Postgres free-tier limitation
                     cur.execute(self.db_drop_table)
