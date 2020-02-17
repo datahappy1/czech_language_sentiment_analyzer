@@ -345,7 +345,7 @@ def stats(period="day"):
 
 if __name__ == "__main__":
     # # Local app run:
-    serve(app, host='0.0.0.0', port=80, threads=4)
+    # serve(app, host='0.0.0.0', port=80, threads=4)
 
     # # Heroku deployed app run:
-    # serve(app, host='127.0.0.1', port=5000)
+    serve(app, host='127.0.0.1', port=5000)

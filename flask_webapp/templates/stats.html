@@ -37,6 +37,7 @@
     </div>
 
     <script>
+
         var ctx = document.getElementById('pieChartSource').getContext('2d');
         var myPieChart = new Chart(ctx, {
             type: 'pie',
@@ -53,7 +54,8 @@
               title: {
                 display: true,
                 text: 'requests source'
-              }
+              },
+              rotation: (-0.5 * Math.PI)
             }
         });
 
@@ -73,7 +75,8 @@
               title: {
                 display: true,
                 text: 'overall sentiment'
-              }
+              },
+              rotation: (-0.5 * Math.PI)
             }
         });
 
