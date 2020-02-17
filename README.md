@@ -18,7 +18,8 @@ The overall sentiment score for the specified text input is calculated as a weig
 
 ##### Flask web application
 The Flask web application is currently hosted at <a href="http://czester.herokuapp.com">http://czester.herokuapp.com</a>, source code can be found in this location <a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/tree/master/flask_webapp">/flask_webapp/</a>.
-This application backend is written in Python using the `Flask` framework and `Bootstrap` for the templates styling. This app also provides the users with a simple API. The stats module is an integration of `Charts.js` and `Flask` with the statistics data persistence layer being `sqlite3`.
+This application backend is written in Python using the `Flask` framework and `Bootstrap` for the templates styling. This app also provides the users with a simple API. The stats module is a result of an integration between `Charts.js` and `Flask` where the statistics data persistence layer can be either `Sqlite3` or `Heroku Postgres`.
+If you provide this app with a environment variable named `DATABASE_URL` containing the Heroku Postgres DB URL like `postgres://YourPostgresUrl`, then remote `Heroku Postgres` will be used, otherwise local `Sqlite3` db instance will be used.
 
 ##### How to run this Flask App from local environment
 1) create and activate a standard Python virtual or pipenv environment <br>
