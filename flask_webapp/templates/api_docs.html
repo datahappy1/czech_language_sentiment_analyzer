@@ -17,9 +17,19 @@
                         <li class="list-group-item list-group-item-success"><code>{"mimetype":"application/json","sentiment_result":{"overall_sentiment":{"probability":0.72,"sentiment":"negative"}},"status":200}</code></li>
                     </ul>
                 </li>
-                <li class="list-group-item list-group-item-light">Example CURL POST request error response for <code>insufficient input text</code>:
+                <li class="list-group-item list-group-item-light">Example CURL POST request error response for <code>insufficient input text - missing at least 3 words</code>:
                     <ul class="list-group">
-                        <li class="list-group-item list-group-item-danger"><code>{"error":"More words for analysis needed","mimetype":"application/json","status":400}</code></li>
+                        <li class="list-group-item list-group-item-danger"><code>{"error":"Sorry, need to submit at least 3 non stop-words","mimetype":"application/json","status":400}</code></li>
+                    </ul>
+                </li>
+                <li class="list-group-item list-group-item-light">Example CURL POST request error response for <code>insufficient input text - missing at least 1 word with 3 and more characters</code>:
+                    <ul class="list-group">
+                        <li class="list-group-item list-group-item-danger"><code>{"error":"Sorry, need to submit at least 1 word with 3 and more characters","mimetype":"application/json","status":400}</code></li>
+                    </ul>
+                </li>
+                <li class="list-group-item list-group-item-light">Example CURL POST request error response for <code>insufficient input text - Czech language not recognized</code>:
+                    <ul class="list-group">
+                        <li class="list-group-item list-group-item-danger"><code>{"error":"Sorry, need to submit text written in Czech","mimetype":"application/json","status":400}</code></li>
                     </ul>
                 </li>
                 <li class="list-group-item list-group-item-light">Example CURL POST request error response for <code>not found</code>:

@@ -10,7 +10,7 @@ import datetime
 from bs4 import BeautifulSoup
 import urllib3
 import requests
-from utils.utils import _replace_all
+from utils.project_utils import replace_all
 
 OUTPUT_FILE_PATH = 'reviews_with_ranks.csv'
 SCRAPER_FINAL_OUTPUT = []
@@ -148,7 +148,7 @@ def movie_review_scraper(url_to_scrape):
 
                 for sto in scraper_temp_output:
                     i_review = sto.get('review')
-                    review = _replace_all(str(i_review).lower().lstrip(" "))
+                    review = replace_all(str(i_review).lower().lstrip(" "))
                     rank = sto.get('rank')
                     SCRAPER_FINAL_OUTPUT.append((review, rank))
 

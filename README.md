@@ -1,7 +1,7 @@
 ##### Data Collection
 56k Czech movie reviews were collected using the <a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/blob/master/data_preparation/data_collector_movie_review_scraper.py">/data_preparation/data_collector_movie_review_scraper.py</a>
-multithreaded HTML scraping module. To have the data balanced with the same amount of negative and positive reviews, the
-final dataset had to be reduced to 14k positive and 14k negative reviews.
+multithreaded HTML scraping module. These reviews were scrubbed using `langdetect` module to remove reviews written in Slovak language. To have the data balanced with the same amount of negative and positive reviews, the
+final dataset had to be reduced to 11.5k positive and 11.5k negative reviews.
  This dataset was scrubbed agains a collection of Czech stopwords. 
 
 ##### ML Models
@@ -26,11 +26,11 @@ If you provide this app with a environment variable named `DATABASE_URL` contain
 2) `pip3` install the requirements from `requirements.txt` <br>
 3) set the working directory for instance to the path where you cloned this repo (Make sure it's the path where the Heroku `Procfile` file is located)
 
-##### TODOs
+##### TODOs / Future ideas
 <ul>
-    <li>Implement sending feedback in case of wrong results, so ML models re-train job can run on a schedule</li>
-    <li>Remove reviews written in Slovak language</li>
-    <li>Add tests</li>
+    <li><del>Remove reviews written in Slovak language</del> 	&#10003;</li>
+    <li><del>Verify input text is written in Czech language</del> 	&#10003;</li>
+    <li><del>Add Flask web app tests</del> 	&#10003;</li>
     <li>Czech word lemmatizer / stemmatizer module</li>
     <li>Ensembling instead of weighted model precision average for overall sentiment</li>
     <li>Redis could replace Sqlite3 / Postgres</li>
@@ -40,6 +40,8 @@ If you provide this app with a environment variable named `DATABASE_URL` contain
 <ul>
     <li><a href="https://scikit-learn.org/stable/tutorial/text_analytics/working_with_text_data.html">Scikit-Learn working with text data</a></li>
     <li><a href="https://www.pluralsight.com/guides/ensemble-modeling-scikit-learn">Ensembling with Scikit-Learn</a></li>
+    <li><a href="https://towardsdatascience.com/two-is-better-than-one-ensembling-models-611ee4fa9bd8">Ensembling models</a></li>
+    <li><a href="https://pypi.org/project/langdetect/">Langdetect PyPi project homepage</a></li>
     <li><a href="https://www.chartjs.org/docs/latest/charts/">Charts.js homepage</a></li>
     <li><a href="https://medium.com/the-andela-way/deploying-a-python-flask-app-to-heroku-41250bda27d0">Deploying Flask to Heroku tutorial</a></li>
 </ul>

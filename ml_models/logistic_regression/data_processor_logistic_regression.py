@@ -3,14 +3,15 @@ data processor for logistic regression
 """
 import random
 import pickle
+from langdetect import detect, lang_detect_exception
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import model_selection,linear_model
-from utils.utils import _read_czech_stopwords, _replace_all
+from utils.utilities import ProjectCommon
 
 
 TEMP_FILE_PATH = '../../data_preparation/reviews_with_ranks.csv'
 CZECH_STOPWORDS_FILE_PATH = '../../data_preparation/czech_stopwords.txt'
-PERSIST_MODEL_TO_FILE = False
+PERSIST_MODEL_TO_FILE = True
 
 
 def _read_temp_file_generator():
@@ -35,15 +36,19 @@ def logistic_regression(PERSIST_MODEL_TO_FILE):
     temp_file_reviews_work = []
 
     temp_file_gen = _read_temp_file_generator()
-    czech_stopwords = _read_czech_stopwords(CZECH_STOPWORDS_FILE_PATH)
+    czech_stopwords = ProjectCommon.read_czech_stopwords(CZECH_STOPWORDS_FILE_PATH)
 
     for tfg in temp_file_gen:
         if len(tfg) == 2:
-            if _replace_all(tfg[0]) not in czech_stopwords:
-                temp_file_reviews_work.append((_replace_all(tfg[0].rstrip(' ').lstrip(' ')),tfg[1]))
+            try:
+                _detected_lang = detect(ProjectCommon.replace_non_alpha_chars(ProjectCommon.replace_html(tfg[0])))
+            except lang_detect_exception.LangDetectException:
+                continue
+            if ProjectCommon.replace_all(tfg[0]) not in czech_stopwords and _detected_lang == 'cs':
+                temp_file_reviews_work.append((ProjectCommon.replace_all(tfg[0].rstrip(' ').lstrip(' ')),tfg[1]))
 
-    temp_file_reviews_work = [x for x in temp_file_reviews_work if x[1] == 'neg'][:14000] + \
-                         [x for x in temp_file_reviews_work if x[1] == 'pos'][:14000]
+    temp_file_reviews_work = [x for x in temp_file_reviews_work if x[1] == 0][:11500] + \
+                         [x for x in temp_file_reviews_work if x[1] == 1][:11500]
 
     random.shuffle(temp_file_reviews_work)
 
@@ -67,7 +72,7 @@ def logistic_regression(PERSIST_MODEL_TO_FILE):
 
     # # accuracy score calculation: 0.840
     lr.predict(Test_X)
-    # print("Score: {:.2f}".format(lr.score(Test_X, Test_Y)))
+    print("Score: {:.2f}".format(lr.score(Test_X, Test_Y)))
 
     # # adhoc input prediction:
     # input_string = input_string[0]

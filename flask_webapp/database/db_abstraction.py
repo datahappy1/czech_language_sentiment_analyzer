@@ -24,12 +24,11 @@ class QueryRemote:
     # check if table exists
     DB_CHECK_TABLE_EXISTS = """
     SELECT 1 FROM information_schema.tables 
-    WHERE table_schema = 'czester'
-    AND table_name = 'stats'; """
+    WHERE table_name = 'stats'; """
 
     # insert into stats query
     DB_INSERT_STATS_QUERY = """
-    INSERT INTO stats ("request_datetime", "source", "sentiment_prediction") VALUES (%s, %s, %s); """
+    INSERT INTO stats("request_datetime", "source", "sentiment_prediction") VALUES (%s, %s, %s); """
 
     # select raw stats data
     DB_SELECT_RAW_STATS_DATA = """
@@ -92,7 +91,7 @@ class Database:
             self.conn = remote_postgres.create_connection(db_url_parsed)
 
         elif self.environment == "local":
-            db_file_loc = "flask_webapp/database/stats.db"
+            db_file_loc = os.path.abspath(os.path.join(os.path.dirname(__file__), 'stats.db'))
             self.conn = local_sqlite.create_connection(db_file_loc)
 
         else:
@@ -108,9 +107,9 @@ class Database:
         with self.conn:
             cur = self.conn.cursor()
             cur.execute(self.db_check_table_exists)
-            _table_exists = cur.fetchone()
+            _table_exists = cur.fetchone()[0]
 
-            if _table_exists:
+            if _table_exists == 1:
                 # check the count of all rows in the stats table
                 cur.execute(self.db_select_count_rows_query)
                 _rowcount = cur.fetchone()[0]

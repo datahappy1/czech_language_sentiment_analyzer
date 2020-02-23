@@ -4,17 +4,17 @@
 <div class="container-fluid">
     <div class="p-3">
         <h3>Site Statistics</h3>
-        <ul>
-            <li><a href="{{ url_for('stats', period='day') }}"
+        <ul class="list-group list-group-horizontal">
+            <li class="list-group-item"><a href="{{ url_for('stats', period='day') }}"
                    {% if template_period=="day" %} class="font-weight-bold" {% endif %}>
                 last 24 hours</a></li>
-            <li><a href="{{ url_for('stats', period='week') }}"
+            <li class="list-group-item"><a href="{{ url_for('stats', period='week') }}"
                    {% if template_period=="week" %} class="font-weight-bold" {% endif %}>
                 last week</a></li>
-            <li><a href="{{ url_for('stats', period='month') }}"
+            <li class="list-group-item"><a href="{{ url_for('stats', period='month') }}"
                    {% if template_period=="month" %} class="font-weight-bold" {% endif %}>
                 last month</a></li>
-            <li><a href="{{ url_for('stats', period='all') }}"
+            <li class="list-group-item"><a href="{{ url_for('stats', period='all') }}"
                    {% if template_period=="all" %} class="font-weight-bold" {% endif %}>
                 full history</a></li>
         </ul>
@@ -30,6 +30,8 @@
             <div class="col">
                 <canvas id="pieChartSentiment"></canvas>
             </div>
+        </div>
+        <div class="row">
             <div class="col">
                 <canvas id="stackedChart"></canvas>
             </div>
@@ -55,7 +57,9 @@
                 display: true,
                 text: 'requests source'
               },
-              rotation: (-0.5 * Math.PI)
+              rotation: (-0.5 * Math.PI),
+              responsive: true,
+              maintainAspectRatio: false,
             }
         });
 
@@ -76,7 +80,9 @@
                 display: true,
                 text: 'overall sentiment'
               },
-              rotation: (-0.5 * Math.PI)
+              rotation: (-0.5 * Math.PI),
+              responsive: true,
+              maintainAspectRatio: false,
             }
         });
 

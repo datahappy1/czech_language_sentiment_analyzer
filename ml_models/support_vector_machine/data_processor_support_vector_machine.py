@@ -10,7 +10,7 @@ from sklearn import metrics, model_selection
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.pipeline import Pipeline
-from utils.utils import _read_czech_stopwords, _replace_all
+from utils.project_utils import _read_czech_stopwords, _replace_all
 
 
 TEMP_FILE_PATH = '../../data_preparation/reviews_with_ranks.csv'
