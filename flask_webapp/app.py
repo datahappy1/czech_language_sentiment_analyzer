@@ -2,7 +2,6 @@
 __main__.py
 """
 import os
-import pickle
 from datetime import date, datetime, timedelta
 from flask import Flask, render_template, send_from_directory, request, jsonify, g
 from flaskext.markdown import Markdown

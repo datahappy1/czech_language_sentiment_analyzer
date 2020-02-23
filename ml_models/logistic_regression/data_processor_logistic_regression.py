@@ -27,10 +27,10 @@ def _read_temp_file_generator():
             yield '#NA'
 
 
-def logistic_regression(PERSIST_MODEL_TO_FILE):
+def logistic_regression(persist_model_to_file):
     """
     function for training and testing the ML model
-    :param PERSIST_MODEL_TO_FILE:
+    :param persist_model_to_file:
     :return:
     """
     temp_file_reviews_work = []
@@ -47,8 +47,9 @@ def logistic_regression(PERSIST_MODEL_TO_FILE):
             if ProjectCommon.replace_all(tfg[0]) not in czech_stopwords and _detected_lang == 'cs':
                 temp_file_reviews_work.append((ProjectCommon.replace_all(tfg[0].rstrip(' ').lstrip(' ')),tfg[1]))
 
-    temp_file_reviews_work = [x for x in temp_file_reviews_work if x[1] == 0][:11500] + \
-                         [x for x in temp_file_reviews_work if x[1] == 1][:11500]
+
+    temp_file_reviews_work = [x for x in temp_file_reviews_work if x[1] == 'neg'][:11500] + \
+                         [x for x in temp_file_reviews_work if x[1] == 'pos'][:11500]
 
     random.shuffle(temp_file_reviews_work)
 
@@ -66,13 +67,13 @@ def logistic_regression(PERSIST_MODEL_TO_FILE):
     lr = grid.best_estimator_
     lr.fit(Train_X, Train_Y)
 
-    if PERSIST_MODEL_TO_FILE:
+    if persist_model_to_file:
         pickle.dump(vect, open('vectorizer.pkl', 'wb'))
         pickle.dump(lr, open('model.pkl','wb'))
 
     # # accuracy score calculation: 0.840
-    lr.predict(Test_X)
-    print("Score: {:.2f}".format(lr.score(Test_X, Test_Y)))
+    # lr.predict(Test_X)
+    # print("Score: {:.2f}".format(lr.score(Test_X, Test_Y)))
 
     # # adhoc input prediction:
     # input_string = input_string[0]

@@ -4,18 +4,19 @@ data processor for logistic regression
 import random
 import pickle
 import numpy as np
+from langdetect import detect, lang_detect_exception
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import SGDClassifier
 from sklearn import metrics, model_selection
 from sklearn.model_selection import GridSearchCV
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.pipeline import Pipeline
-from utils.project_utils import _read_czech_stopwords, _replace_all
+from utils.utilities import ProjectCommon
 
 
 TEMP_FILE_PATH = '../../data_preparation/reviews_with_ranks.csv'
 CZECH_STOPWORDS_FILE_PATH = '../../data_preparation/czech_stopwords.txt'
-PERSIST_MODEL_TO_FILE = False
+PERSIST_MODEL_TO_FILE = True
 
 
 def _read_temp_file_generator():
@@ -31,24 +32,29 @@ def _read_temp_file_generator():
             yield '#NA'
 
 
-def support_vector_machine(PERSIST_MODEL_TO_FILE):
+def support_vector_machine(persist_model_to_file):
     """
     function for training and testing the ML model
-    :param PERSIST_MODEL_TO_FILE:
+    :param persist_model_to_file:
     :return:
     """
     temp_file_reviews_work = []
 
     temp_file_gen = _read_temp_file_generator()
-    czech_stopwords = _read_czech_stopwords(CZECH_STOPWORDS_FILE_PATH)
+    czech_stopwords = ProjectCommon.read_czech_stopwords(CZECH_STOPWORDS_FILE_PATH)
 
     for tfg in temp_file_gen:
         if len(tfg) == 2:
-            if _replace_all(tfg[0]) not in czech_stopwords:
-                temp_file_reviews_work.append((_replace_all(tfg[0].rstrip(' ').lstrip(' ')),tfg[1]))
+            try:
+                _detected_lang = detect(ProjectCommon.replace_non_alpha_chars(ProjectCommon.replace_html(tfg[0])))
+            except lang_detect_exception.LangDetectException:
+                continue
+            if ProjectCommon.replace_all(tfg[0]) not in czech_stopwords and _detected_lang == 'cs':
+                temp_file_reviews_work.append((ProjectCommon.replace_all(tfg[0].rstrip(' ').lstrip(' ')),tfg[1]))
 
-    temp_file_reviews_work = [x for x in temp_file_reviews_work if x[1] == 'neg'][:14000] + \
-                         [x for x in temp_file_reviews_work if x[1] == 'pos'][:14000]
+
+    temp_file_reviews_work = [x for x in temp_file_reviews_work if x[1] == 'neg'][:11500] + \
+                         [x for x in temp_file_reviews_work if x[1] == 'pos'][:11500]
 
     random.shuffle(temp_file_reviews_work)
 
@@ -75,11 +81,11 @@ def support_vector_machine(PERSIST_MODEL_TO_FILE):
     gs_clf = GridSearchCV(text_clf, parameters, cv=5, n_jobs=-1)
     gs_clf = gs_clf.fit(Train_X, Train_Y)
 
-    if PERSIST_MODEL_TO_FILE:
+    if persist_model_to_file:
         pickle.dump(gs_clf, open('model.pkl','wb'))
 
     # # accuracy score calculation: 0.822
-    # print(np.mean(predicted == Test_Y))
+    print(np.mean(predicted == Test_Y))
     # print(metrics.classification_report(Test_Y, predicted, target_names = ['neg', 'pos']))
 
     # # adhoc input prediction:
