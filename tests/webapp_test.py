@@ -1,9 +1,129 @@
-import pytest
+"""
+Flask app Pytest testing suite
+"""
 from flask_webapp.app import app
+
+API_PREFIX = app.config['api_prefix']
 
 
 def test_main_get():
+    app.testing = True
     response = app.test_client().get('/')
     # print(response.data)
     assert response.status_code == 200
     assert b'<title>Czech sentiment analyzer Datahappy \xc2\xa92019</title>' in response.data
+
+
+def test_main_post_no_input_text():
+    app.testing = True
+    response = app.test_client().post('/')
+
+    assert response.status_code == 200
+    assert b'<div id="error_message" class="alert alert-danger">' \
+           b'Sorry, need to submit at least 3 non stop-words</div>' in response.data
+
+
+def test_main_post_invalid_input_text_too_few_words():
+    response = app.test_client().post('/', data=dict(Input_Text='a jsi'),
+                                      follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b'<div id="error_message" class="alert alert-danger">' \
+           b'Sorry, need to submit at least 3 non stop-words</div>' in response.data
+
+
+def test_main_post_invalid_input_text_too_short_words():
+    response = app.test_client().post('/', data=dict(Input_Text='a b c d'),
+                                      follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b'<div id="error_message" class="alert alert-danger">' \
+           b'Sorry, need to submit at least 1 word with 3 and more characters</div>' in response.data
+
+
+def test_main_post_invalid_input_text_not_czech_language():
+    response = app.test_client().post('/', data=dict(Input_Text='ein zwei polizei'),
+                                      follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b'<div id="error_message" class="alert alert-danger">' \
+           b'Sorry, need to submit text written in Czech</div>' in response.data
+
+
+def test_main_post_valid_input_text_positive():
+    response = app.test_client().post('/', data=dict(Input_Text='Skvělé funkcionální testy'),
+                                      follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b'overall_sentiment : <b>positive</b>' in response.data
+
+
+def test_main_post_valid_input_text_negative():
+    response = app.test_client().post('/', data=dict(Input_Text='Hrozné funkcionální testy'),
+                                      follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b'overall_sentiment : <b>negative</b>' in response.data
+
+
+def test_api_get():
+    app.testing = True
+    response = app.test_client().get(API_PREFIX)
+
+    assert response.status_code == 405
+    assert b'{"error":"405 Method Not Allowed: The method is not allowed for the requested URL.",' \
+           b'"mimetype":"application/json","status":405}' in response.data
+
+
+def test_api_post_no_input_text():
+    app.testing = True
+    response = app.test_client().post(API_PREFIX)
+
+    assert response.status_code == 400
+    assert b'<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n' \
+           b'<title>400 Bad Request</title>\n<h1>Bad Request</h1>\n<p>' \
+           b'The browser (or proxy) sent a request that this server ' \
+           b'could not understand.</p>' in response.data
+
+
+def test_api_post_invalid_input_text_too_few_words():
+    response = app.test_client().post(API_PREFIX, data=dict(Input_Text='a jsi'),
+                                      follow_redirects=True)
+
+    assert response.status_code == 400
+    assert b'{"error":"Sorry, need to submit at least 3 non stop-words",' \
+           b'"mimetype":"application/json","status":400}' in response.data
+
+
+def test_api_post_invalid_input_text_too_short_words():
+    response = app.test_client().post(API_PREFIX, data=dict(Input_Text='a b c d'),
+                                      follow_redirects=True)
+
+    assert response.status_code == 400
+    assert b'{"error":"Sorry, need to submit at least 1 word with 3 and more characters",' \
+           b'"mimetype":"application/json","status":400' in response.data
+
+
+def test_api_post_invalid_input_text_not_czech_language():
+    response = app.test_client().post(API_PREFIX, data=dict(Input_Text='ein zwei polizei'),
+                                      follow_redirects=True)
+
+    assert response.status_code == 400
+    assert b'{"error":"Sorry, need to submit text written in Czech",' \
+           b'"mimetype":"application/json","status":400}' in response.data
+
+
+def test_api_post_valid_input_text_positive():
+    response = app.test_client().post(API_PREFIX, data=dict(Input_Text='Skvělé funkcionální testy'),
+                                      follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b'"sentiment":"positive"' in response.data
+
+
+def test_api_post_valid_input_text_negative():
+    response = app.test_client().post(API_PREFIX, data=dict(Input_Text='Hrozné funkcionální testy'),
+                                      follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b'"sentiment":"negative"' in response.data
