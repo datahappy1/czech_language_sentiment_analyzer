@@ -138,6 +138,7 @@ def main():
 
     elif request.method == 'POST':
         input_text = request.form.get('Input_Text')
+        input_text = str(input_text).lower()
         input_text_list = Webapp.input_string_preparator(input_text)
 
         if len(input_text_list) < 3:
@@ -176,6 +177,7 @@ def api():
     """
     if request.method == 'POST':
         input_text = request.form['Input_Text']
+        input_text = str(input_text).lower()
         input_text_list = Webapp.input_string_preparator(input_text)
 
         if len(input_text_list) < 3:
