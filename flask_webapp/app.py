@@ -91,6 +91,24 @@ def favicon():
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
+@app.errorhandler(400)
+def bad_request(error):
+    """
+    bad request error handler function
+    :param error:
+    :return:error html page or api response
+    """
+    if request.path.startswith(app.config["api_prefix"]):
+        response = jsonify({
+            'status': 400,
+            'error': str(error),
+            'mimetype': 'application/json'
+        })
+        response.status_code = 400
+        return response
+    return render_template('error_page.html', template_error_message=error)
+
+
 @app.errorhandler(405)
 def not_allowed(error):
     """
@@ -145,6 +163,7 @@ def main():
             return render_template('index.html',
                                    template_input_string=input_text,
                                    template_error_message="Sorry, need to submit at least 3 non stop-words")
+
         if all([len(i) < 3 for i in input_text_list]):
             return render_template('index.html',
                                    template_input_string=input_text,
@@ -176,7 +195,7 @@ def api():
     :return:
     """
     if request.method == 'POST':
-        input_text = request.form['Input_Text']
+        input_text = request.form.get('Input_Text')
         input_text = str(input_text).lower()
         input_text_list = Webapp.input_string_preparator(input_text)
 
@@ -257,11 +276,9 @@ def stats(period="day"):
         period_from = date.today() - timedelta(weeks=1)
     elif period == "month":
         period_from = date.today() - timedelta(weeks=4)
-    elif period == "all":
-        period_from = datetime.strptime("2020-01-01", '%Y-%m-%d')
     # falls back to 1 day of stats
     else:
-        period_from = datetime.today() - timedelta(days=1)
+        period_from = date.today() - timedelta(days=1)
 
     # fetch the stats data from the DB
     cur = get_db().cursor()

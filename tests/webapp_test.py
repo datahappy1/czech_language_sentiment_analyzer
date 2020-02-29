@@ -9,7 +9,6 @@ API_PREFIX = app.config['api_prefix']
 def test_main_get():
     app.testing = True
     response = app.test_client().get('/')
-    # print(response.data)
     assert response.status_code == 200
     assert b'<title>Czech sentiment analyzer Datahappy \xc2\xa92019</title>' in response.data
 
@@ -78,12 +77,9 @@ def test_api_get():
 def test_api_post_no_input_text():
     app.testing = True
     response = app.test_client().post(API_PREFIX)
-
     assert response.status_code == 400
-    assert b'<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n' \
-           b'<title>400 Bad Request</title>\n<h1>Bad Request</h1>\n<p>' \
-           b'The browser (or proxy) sent a request that this server ' \
-           b'could not understand.</p>' in response.data
+    assert b'{"error":"Sorry, need to submit at least 3 non stop-words",' \
+           b'"mimetype":"application/json","status":400}' in response.data
 
 
 def test_api_post_invalid_input_text_too_few_words():

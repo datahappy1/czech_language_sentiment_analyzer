@@ -1,5 +1,5 @@
 """
-the ml_models_processor module allows to update all of the used ml models from one location
+the ml_models_processor module allows to reprocess all of the used ml models from one location
 """
 from ml_models.naive_bayes import data_processor_naive_bayes
 from ml_models.logistic_regression import data_processor_logistic_regression
@@ -13,3 +13,7 @@ output['naive_bayes']['accuracy'] = data_processor_logistic_regression.logistic_
 output['naive_bayes']['accuracy'] = data_processor_support_vector_machine.support_vector_machine(PERSIST_MODEL_TO_FILE)
 
 print(output)
+
+with open('ml_models_accuracy.json', 'r') as f:
+    f.writelines(output)
+

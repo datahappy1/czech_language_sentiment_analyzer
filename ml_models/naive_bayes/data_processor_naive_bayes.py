@@ -11,7 +11,6 @@ from utils.utilities import ProjectCommon
 
 
 TEMP_FILE_PATH = '../../data_preparation/reviews_with_ranks.csv'
-CZECH_STOPWORDS_FILE_PATH = '../../data_preparation/czech_stopwords.txt'
 PERSIST_MODEL_TO_FILE = True
 
 
@@ -37,25 +36,27 @@ def naive_bayes(persist_model_to_file):
     temp_file_reviews_work = []
 
     temp_file_gen = _read_temp_file_generator()
-    czech_stopwords = ProjectCommon.read_czech_stopwords(CZECH_STOPWORDS_FILE_PATH)
 
     for tfg in temp_file_gen:
         if len(tfg) == 2:
             try:
-                _detected_lang = detect(ProjectCommon.replace_non_alpha_chars(ProjectCommon.replace_html(tfg[0])))
+                _detected_lang = detect(ProjectCommon.replace_non_alpha_chars(
+                    ProjectCommon.replace_html(tfg[0]))
+                )
             except lang_detect_exception.LangDetectException:
                 continue
-            if ProjectCommon.replace_all(tfg[0]) not in czech_stopwords and _detected_lang == 'cs':
-                temp_file_reviews_work.append((ProjectCommon.replace_all(tfg[0].rstrip(' ').lstrip(' ')),tfg[1]))
+            if  _detected_lang == 'cs':
+                temp_file_reviews_work.append((ProjectCommon.replace_all(tfg[0]),tfg[1]))
 
     temp_file_reviews_work = [x for x in temp_file_reviews_work if x[1] == 0][:11500] + \
                          [x for x in temp_file_reviews_work if x[1] == 1][:11500]
 
     random.shuffle(temp_file_reviews_work)
 
-    Train_X, Test_X, Train_Y, Test_Y = model_selection.train_test_split([x[0] for x in temp_file_reviews_work],
-                                                                        [x[1] for x in temp_file_reviews_work],
-                                                                        test_size=0.2)
+    Train_X, Test_X, Train_Y, Test_Y = model_selection.\
+        train_test_split([x[0] for x in temp_file_reviews_work],
+                         [x[1] for x in temp_file_reviews_work],
+                         test_size=0.2)
 
     vect = CountVectorizer()
     Train_X = vect.fit_transform([x for x in Train_X])

@@ -1,13 +1,14 @@
 """
-project common helper functions
+utilities module
 """
 import os
 import re
 import functools
 from itertools import groupby
 
-CZECH_STOPWORDS_FILE_PATH = 'data_preparation/czech_stopwords.txt'
-MARKDOWN_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'README.md'))
+#CZECH_STOPWORDS_FILE_PATH = 'data_preparation/czech_stopwords.txt'
+CZECH_STOPWORDS_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data_preparation', 'czech_stopwords.txt'))
+MARKDOWN_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'README.md'))
 
 
 class ProjectCommon:
@@ -44,7 +45,7 @@ class ProjectCommon:
     @staticmethod
     def replace_non_alpha_chars(text) -> str:
         """
-        multi replace non alpha string function
+        function for replacing all occurrences of non alpha chars in the input string
         :param text:
         :return:
         """
@@ -61,7 +62,7 @@ class ProjectCommon:
     @staticmethod
     def replace_diacritics(text) -> str:
         """
-        multi replace diacritics string function
+        function for replacing all occurrences of Czech diacritics in the input string
         :param text_output:
         :return:
         """
@@ -77,11 +78,13 @@ class ProjectCommon:
     @staticmethod
     def replace_all(text) -> str:
         """
-        multi replace all function
+        function for running all-in-one replace functions incl. stripping empty
         :param text:
         :return:
         """
-        text_output_no_html = ProjectCommon.replace_html(text)
+        text_output_trimmed = text.lstrip(' ').rstrip(' ')
+
+        text_output_no_html = ProjectCommon.replace_html(text_output_trimmed)
 
         text_output_no_html_no_non_alpha_chars = \
             ProjectCommon.replace_non_alpha_chars(text_output_no_html)
@@ -143,8 +146,7 @@ class Webapp:
     @staticmethod
     def markdown_reader():
         """
-        markdown file reader function
-        :param markdown_file_path:
+        function for reading markdown file
         :return:
         """
         with open(MARKDOWN_FILE_PATH, "r") as f:
