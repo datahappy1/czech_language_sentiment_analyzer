@@ -5,18 +5,14 @@
     <div class="p-3">
         <h3>Site Statistics</h3>
         <ul class="list-group list-group-horizontal">
-            <a href="{{ url_for('stats', period='day') }}"
-                   {% if template_period=="day" %} class="font-weight-bold" {% endif %}>
-                <li class="list-group-item">
-                last 24 hours</li></a>
-            <a href="{{ url_for('stats', period='week') }}"
-                   {% if template_period=="week" %} class="font-weight-bold" {% endif %}>
-                <li class="list-group-item">
-                last week</li></a>
-            <a href="{{ url_for('stats', period='month') }}"
-                   {% if template_period=="month" %} class="font-weight-bold" {% endif %}>
-                <li class="list-group-item">
-                last month</li></a>
+                <li class="list-group-item"><a href="{{ url_for('stats', period='day') }}"
+                   {% if template_period=="day" %} class="font-weight-bold" {% endif %}>last 24 hours</a></li>
+
+                <li class="list-group-item"><a href="{{ url_for('stats', period='week') }}"
+                   {% if template_period=="week" %} class="font-weight-bold" {% endif %}>last week</a></li>
+
+                <li class="list-group-item"><a href="{{ url_for('stats', period='month') }}"
+                   {% if template_period=="month" %} class="font-weight-bold" {% endif %}>last month</a></li>
         </ul>
     </div>
 

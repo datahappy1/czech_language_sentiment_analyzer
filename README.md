@@ -2,7 +2,7 @@
 56k Czech movie reviews were collected using the <a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/blob/master/data_preparation/data_collector_movie_review_scraper.py">/data_preparation/data_collector_movie_review_scraper.py</a>
 multithreaded HTML scraping module. These reviews were scrubbed using `langdetect` module to remove reviews written in Slovak language. To have the data balanced with the same amount of negative and positive reviews, the
 final dataset had to be reduced to 11.5k positive and 11.5k negative reviews.
- This dataset was scrubbed agains a collection of Czech stopwords. 
+ This dataset was scrubbed against a collection of Czech stopwords. 
 
 ##### ML Models
 From `Scikit-Learn` Python library, `Naive Bayes`, `Logistic regression` and `Support Vector Machine` ML models were used

@@ -1,6 +1,6 @@
 import os
 import urllib.parse as urlparse
-from flask_webapp.database import local_sqlite, remote_postgres
+from flask_webapp.database import conn_local_sqlite, conn_remote_postgres
 
 class QueryCommon:
     # drop the stats table
@@ -13,6 +13,7 @@ class QueryCommon:
 
 
 class QueryRemote:
+    # Postgres
     # create the stats table
     DB_CREATE_TABLE = """
     CREATE TABLE IF NOT EXISTS stats(
@@ -38,6 +39,7 @@ class QueryRemote:
 
 
 class QueryLocal:
+    # Sqlite3
     # create the stats table
     DB_CREATE_TABLE = """
     CREATE TABLE IF NOT EXISTS stats (
@@ -88,11 +90,11 @@ class Database:
         if self.environment == "remote":
             db_url = os.environ.get('DATABASE_URL')
             db_url_parsed = urlparse.urlparse(db_url)
-            self.conn = remote_postgres.create_connection(db_url_parsed)
+            self.conn = conn_remote_postgres.create_connection(db_url_parsed)
 
         elif self.environment == "local":
             db_file_loc = os.path.abspath(os.path.join(os.path.dirname(__file__), 'stats.db'))
-            self.conn = local_sqlite.create_connection(db_file_loc)
+            self.conn = conn_local_sqlite.create_connection(db_file_loc)
 
         else:
             raise NotImplementedError

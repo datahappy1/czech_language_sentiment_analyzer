@@ -276,7 +276,7 @@ def stats(period="day"):
         period_from = date.today() - timedelta(weeks=1)
     elif period == "month":
         period_from = date.today() - timedelta(weeks=4)
-    # falls back to 1 day of stats
+    # falls back to last 24 hours of stats
     else:
         period_from = date.today() - timedelta(days=1)
 
@@ -298,13 +298,12 @@ def stats(period="day"):
                            template_pie_chart_labels_sentiment=
                            chart_data.get('pie_by_sentiment').get('group_keys'),
                            template_time_series_data_positive=
-                           [x[0] for x in chart_data.get('time_series').get('output_data_set') if x[1] == "positive"],
+                           [x[0] for x in chart_data.get('time_series').get('output_data_set') if x[2] == "positive"],
                            template_time_series_data_negative=
-                           [x[0] for x in chart_data.get('time_series').get('output_data_set') if x[1] == "negative"],
+                           [x[0] for x in chart_data.get('time_series').get('output_data_set') if x[2] == "negative"],
                            template_time_series_data_uncertain=
-                           [x[0] for x in chart_data.get('time_series').get('output_data_set') if x[1] == "uncertain"],
-                           template_time_series_labels=
-                           sorted(list(set(chart_data.get('time_series').get('group_keys'))))
+                           [x[0] for x in chart_data.get('time_series').get('output_data_set') if x[2] == "uncertain"],
+                           template_time_series_labels=chart_data.get('time_series').get('group_keys')
                            )
 
 

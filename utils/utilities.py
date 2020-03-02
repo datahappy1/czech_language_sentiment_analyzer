@@ -4,7 +4,7 @@ utilities module
 import os
 import re
 import functools
-from itertools import groupby
+from itertools import groupby, product
 
 #CZECH_STOPWORDS_FILE_PATH = 'data_preparation/czech_stopwords.txt'
 CZECH_STOPWORDS_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data_preparation', 'czech_stopwords.txt'))
@@ -136,10 +136,32 @@ class Webapp:
             all_charts_output['pie_by_sentiment']['output_data_set'].append((len(list(g)), k))
 
         # time series chart
-        _sorted_data = sorted(input_data_set, key=lambda x: (x[0], x[2]))
-        for k, g in groupby(_sorted_data, lambda x: (x[0], x[2])):
-            all_charts_output['time_series']['group_keys'].append(k[0])
-            all_charts_output['time_series']['output_data_set'].append((len(list(g)), k[1], k[0]))
+        cart_prod, time_series_output = [], []
+
+        # let's prepare the cartesian product dataset
+        dates = list(set([x[0] for x in input_data_set]))
+        sentiment_values = ['negative', 'positive', 'uncertain']
+
+        # let's add 0 to each row from the cartesian product dataset for sum
+        for item in [x for x in product(sentiment_values, dates)]:
+            cart_prod.append((item[1], '#source', item[0], 0))
+
+        # let's add 1 to each row from the query fetched results for sum
+        _input_data_set = [x.__add__((1,)) for x in input_data_set]
+
+        # let's extend the _input_data_set with the cart_prod dataset
+        _input_data_set.extend(cart_prod)
+
+        # let's sort the resulting dataset by date and sentiment values
+        _data_set_for_grouping = sorted(_input_data_set, key=lambda x: (x[0], x[2]))
+
+        # let's do the grouping of this dataset and sum the 1's and 0's
+        for k, g in groupby(_data_set_for_grouping, lambda x: (x[0], x[2])):
+            _grouped_item = sum(r[3] for r in g), k[0], k[1]
+            time_series_output.append(_grouped_item)
+
+        all_charts_output['time_series']['group_keys']=sorted(dates)
+        all_charts_output['time_series']['output_data_set']=time_series_output
 
         return all_charts_output
 
