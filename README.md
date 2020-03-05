@@ -1,7 +1,7 @@
 ##### 10000 ft. Overview
 ![alt text][10000ft_overview]
 
-[10000ft_overview]: https://github.com/datahappy1/czech_language_sentiment_analyzer/blob/master/docs/img/10000ft_project_overview.png "10000 ft. overview"
+[10000ft_overview]: https://github.com/datahappy1/czech_language_sentiment_analyzer/blob/master/docs/img/10000ft_project_overview.png?raw=true "10000 ft. overview"
 
 ##### Data Collection
 56k Czech movie reviews were collected using the <a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/blob/master/data_preparation/data_collector_movie_review_scraper.py">/data_preparation/data_collector_movie_review_scraper.py</a>
@@ -28,7 +28,7 @@ If you provide this app with a environment variable named `DATABASE_URL` contain
 Input text dataflow diagram:
 ![alt text][input_text_dataflow]
 
-[input_text_dataflow]: https://github.com/datahappy1/czech_language_sentiment_analyzer/blob/master/docs/img/input_text_flow_diagram.png "input text dataflow"
+[input_text_dataflow]: https://github.com/datahappy1/czech_language_sentiment_analyzer/blob/master/docs/img/input_text_flow_diagram.png?raw=true "input text dataflow"
 
 ##### How to run this Flask App from local environment
 1) create and activate a standard Python virtual or pipenv environment <br>
