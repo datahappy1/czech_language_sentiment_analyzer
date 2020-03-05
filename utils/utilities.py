@@ -6,8 +6,9 @@ import re
 import functools
 from itertools import groupby, product
 
-#CZECH_STOPWORDS_FILE_PATH = 'data_preparation/czech_stopwords.txt'
-CZECH_STOPWORDS_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data_preparation', 'czech_stopwords.txt'))
+CZECH_STOPWORDS_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
+                                                         'data_preparation', 'czech_stopwords.txt'))
+
 MARKDOWN_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'README.md'))
 
 
@@ -28,9 +29,21 @@ class ProjectCommon:
 
         return czech_stopwords
 
+    @staticmethod
+    def remove_czech_stopwords(text) -> str:
+        """
+        function removing czech stopwords from input text
+        :param text:
+        :return:
+        """
+        replacements = {x: '' for x in ProjectCommon.read_czech_stopwords(CZECH_STOPWORDS_FILE_PATH)}
+        output = [w for w in text.split(' ') if w not in replacements]
+
+        return ' '.join(output)
+
 
     @staticmethod
-    def replace_html(raw_text) -> str:
+    def remove_html(raw_text) -> str:
         """
         function to clean html tags contents from the input string
         :param raw_text:
@@ -43,7 +56,7 @@ class ProjectCommon:
 
 
     @staticmethod
-    def replace_non_alpha_chars(text) -> str:
+    def remove_non_alpha_chars(text) -> str:
         """
         function for replacing all occurrences of non alpha chars in the input string
         :param text:
@@ -60,7 +73,7 @@ class ProjectCommon:
 
 
     @staticmethod
-    def replace_diacritics(text) -> str:
+    def remove_diacritics(text) -> str:
         """
         function for replacing all occurrences of Czech diacritics in the input string
         :param text_output:
@@ -76,7 +89,7 @@ class ProjectCommon:
 
 
     @staticmethod
-    def replace_all(text) -> str:
+    def remove_all(text) -> str:
         """
         function for running all-in-one replace functions incl. stripping empty
         :param text:
@@ -84,15 +97,18 @@ class ProjectCommon:
         """
         text_output_trimmed = text.lstrip(' ').rstrip(' ')
 
-        text_output_no_html = ProjectCommon.replace_html(text_output_trimmed)
+        text_output_no_html = ProjectCommon.remove_html(text_output_trimmed)
 
         text_output_no_html_no_non_alpha_chars = \
-            ProjectCommon.replace_non_alpha_chars(text_output_no_html)
+            ProjectCommon.remove_non_alpha_chars(text_output_no_html)
 
         text_output_no_html_no_non_alpha_chars_no_diacritics = \
-            ProjectCommon.replace_diacritics(text_output_no_html_no_non_alpha_chars)
+            ProjectCommon.remove_diacritics(text_output_no_html_no_non_alpha_chars)
 
-        return text_output_no_html_no_non_alpha_chars_no_diacritics
+        text_output_no_html_no_non_alpha_chars_no_diacritics_no_stopwords = \
+            ProjectCommon.remove_czech_stopwords(text_output_no_html_no_non_alpha_chars_no_diacritics)
+
+        return text_output_no_html_no_non_alpha_chars_no_diacritics_no_stopwords
 
 
 class Webapp:
@@ -103,11 +119,8 @@ class Webapp:
         :param input_string:
         :return:
         """
-        czech_stopwords_list = ProjectCommon.read_czech_stopwords(CZECH_STOPWORDS_FILE_PATH)
-
         input_text_list_raw = input_string.split(' ')
-        input_text_list = [ProjectCommon.replace_all(x) for x in input_text_list_raw
-                           if x not in czech_stopwords_list and x != '']
+        input_text_list = [ProjectCommon.remove_all(x) for x in input_text_list_raw if x != '']
 
         return input_text_list
 
@@ -119,24 +132,12 @@ class Webapp:
         :param input_data_set:
         :return:
         """
-        all_charts_output = {'pie_by_source':{'group_keys': [], 'output_data_set': []},
-                             'pie_by_sentiment': {'group_keys': [], 'output_data_set': []},
+        all_charts_output = {'pie_by_sentiment': {'group_keys': [], 'output_data_set': []},
                              'time_series': {'group_keys': [], 'output_data_set': []}}
 
-        # pie chart by source
-        _sorted_data = sorted(input_data_set, key=lambda x: x[1])
-        for k, g in groupby(_sorted_data, lambda x: x[1]):
-            all_charts_output['pie_by_source']['group_keys'].append(k)
-            all_charts_output['pie_by_source']['output_data_set'].append((len(list(g)), k))
-
-        # pie chart by sentiment
-        _sorted_data = sorted(input_data_set, key=lambda x: x[2])
-        for k, g in groupby(_sorted_data, lambda x: x[2]):
-            all_charts_output['pie_by_sentiment']['group_keys'].append(k)
-            all_charts_output['pie_by_sentiment']['output_data_set'].append((len(list(g)), k))
-
-        # time series chart
-        cart_prod, time_series_output = [], []
+        cart_prod_sentiment = []
+        pie_chart_by_sentiment_output = []
+        time_series_output = []
 
         # let's prepare the cartesian product dataset
         dates = list(set([x[0] for x in input_data_set]))
@@ -144,20 +145,33 @@ class Webapp:
 
         # let's add 0 to each row from the cartesian product dataset for sum
         for item in [x for x in product(sentiment_values, dates)]:
-            cart_prod.append((item[1], '#source', item[0], 0))
+            cart_prod_sentiment.append((item[1], item[0], 0))
 
         # let's add 1 to each row from the query fetched results for sum
         _input_data_set = [x.__add__((1,)) for x in input_data_set]
 
         # let's extend the _input_data_set with the cart_prod dataset
-        _input_data_set.extend(cart_prod)
+        _input_data_set.extend(cart_prod_sentiment)
 
+        # pie chart by sentiment
         # let's sort the resulting dataset by date and sentiment values
-        _data_set_for_grouping = sorted(_input_data_set, key=lambda x: (x[0], x[2]))
+        _data_set_for_grouping = sorted(_input_data_set, key=lambda x: (x[1]))
 
         # let's do the grouping of this dataset and sum the 1's and 0's
-        for k, g in groupby(_data_set_for_grouping, lambda x: (x[0], x[2])):
-            _grouped_item = sum(r[3] for r in g), k[0], k[1]
+        for k, g in groupby(_data_set_for_grouping, lambda x: x[1]):
+            _grouped_item = sum(r[2] for r in g), k[0], k[1]
+            pie_chart_by_sentiment_output.append(_grouped_item)
+
+        all_charts_output['pie_by_sentiment']['group_keys'] = sorted(sentiment_values)
+        all_charts_output['pie_by_sentiment']['output_data_set'] = pie_chart_by_sentiment_output
+
+        # time series chart
+        # let's sort the resulting dataset by date and sentiment values
+        _data_set_for_grouping = sorted(_input_data_set, key=lambda x: (x[0], x[1]))
+
+        # let's do the grouping of this dataset and sum the 1's and 0's
+        for k, g in groupby(_data_set_for_grouping, lambda x: (x[0], x[1])):
+            _grouped_item = sum(r[2] for r in g), k[0], k[1]
             time_series_output.append(_grouped_item)
 
         all_charts_output['time_series']['group_keys']=sorted(dates)

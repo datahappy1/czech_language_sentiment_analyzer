@@ -3,12 +3,15 @@ data processor for logistic regression
 """
 import random
 import pickle
+import os
 from langdetect import detect, lang_detect_exception
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn import metrics,model_selection
 from utils.utilities import ProjectCommon
 
+CZECH_STOPWORDS_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
+                                                         'data_preparation', 'czech_stopwords.txt'))
 
 TEMP_FILE_PATH = '../../data_preparation/reviews_with_ranks.csv'
 PERSIST_MODEL_TO_FILE = True
@@ -40,13 +43,13 @@ def naive_bayes(persist_model_to_file):
     for tfg in temp_file_gen:
         if len(tfg) == 2:
             try:
-                _detected_lang = detect(ProjectCommon.replace_non_alpha_chars(
-                    ProjectCommon.replace_html(tfg[0]))
+                _detected_lang = detect(ProjectCommon.remove_non_alpha_chars(
+                    ProjectCommon.remove_html(tfg[0]))
                 )
             except lang_detect_exception.LangDetectException:
                 continue
             if  _detected_lang == 'cs':
-                temp_file_reviews_work.append((ProjectCommon.replace_all(tfg[0]),tfg[1]))
+                temp_file_reviews_work.append((ProjectCommon.remove_all(tfg[0]), tfg[1]))
 
     temp_file_reviews_work = [x for x in temp_file_reviews_work if x[1] == 0][:11500] + \
                          [x for x in temp_file_reviews_work if x[1] == 1][:11500]

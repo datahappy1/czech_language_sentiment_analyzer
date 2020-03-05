@@ -14,6 +14,7 @@ bude
 budem
 budes
 by
+bych
 byl
 byla
 bylo
@@ -102,13 +103,13 @@ mi
 mit
 mít
 mně
+me
 mě
 muj
 můj
 musí
 muze
 může
-mě
 na
 naopak
 nad

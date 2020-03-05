@@ -148,7 +148,7 @@ def movie_review_scraper(url_to_scrape):
 
                 for sto in scraper_temp_output:
                     i_review = sto.get('review')
-                    review = ProjectCommon.replace_html(str(i_review).lower())
+                    review = ProjectCommon.remove_html(str(i_review).lower())
                     rank = sto.get('rank')
                     SCRAPER_FINAL_OUTPUT.append((review, rank))
 

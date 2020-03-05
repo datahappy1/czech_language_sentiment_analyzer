@@ -9,7 +9,7 @@ from flask_caching import Cache
 from waitress import serve
 from langdetect import detect
 from flask_webapp.database import __env__
-from flask_webapp.database.db_abstraction import Database
+from flask_webapp.database.database_interface import Database
 from utils.utilities import Webapp
 from ml_models import webapp_interface
 
@@ -55,16 +55,15 @@ def get_db():
     return db
 
 
-def _stats_to_table_writer(source, sentiment_result):
+def _stats_to_table_writer(sentiment_result):
     """
     function storing stats data in a table
-    :param source: api or website
     :param sentiment_result:
     :return: status
     """
     try:
         cur = get_db().cursor()
-        data_tuple = (datetime.now(), source, sentiment_result)
+        data_tuple = (datetime.now(), sentiment_result)
         cur.execute(Db_obj.db_insert_stats_query, data_tuple)
         get_db().commit()
         status = 'Stats data stored OK'
@@ -179,8 +178,7 @@ def main():
             input_text_list = ' '.join(input_text_list)
             sentiment_result = webapp_interface.ml_model_evaluator([input_text_list])
 
-            _stats_to_table_writer(source='website',
-                                   sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment'))
+            _stats_to_table_writer(sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment'))
 
             return render_template('index.html',
                                    template_input_string=input_text,
@@ -231,8 +229,7 @@ def api():
             input_text_list = ' '.join(input_text_list)
             sentiment_result = webapp_interface.ml_model_evaluator([input_text_list])
 
-            _stats_to_table_writer(source='api',
-                                   sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment'))
+            _stats_to_table_writer(sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment'))
 
             response = jsonify({
                 'status': 200,
@@ -289,10 +286,6 @@ def stats(period="day"):
 
     return render_template('stats.html',
                            template_period=period,
-                           template_pie_chart_data_source=
-                           [x[0] for x in chart_data.get('pie_by_source').get('output_data_set')],
-                           template_pie_chart_labels_source=
-                           chart_data.get('pie_by_source').get('group_keys'),
                            template_pie_chart_data_sentiment=
                            [x[0] for x in chart_data.get('pie_by_sentiment').get('output_data_set')],
                            template_pie_chart_labels_sentiment=

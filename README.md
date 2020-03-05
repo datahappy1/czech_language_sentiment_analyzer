@@ -1,8 +1,12 @@
+##### 10000 ft. Overview
+![alt text][10000ft_overview]
+
+[10000ft_overview]: https://github.com/datahappy1/czech_language_sentiment_analyzer/blob/master/docs/img/10000ft_project_overview.png "10000 ft. overview"
+
 ##### Data Collection
 56k Czech movie reviews were collected using the <a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/blob/master/data_preparation/data_collector_movie_review_scraper.py">/data_preparation/data_collector_movie_review_scraper.py</a>
-multithreaded HTML scraping module. These reviews were scrubbed using `langdetect` module to remove reviews written in Slovak language. To have the data balanced with the same amount of negative and positive reviews, the
+multithreaded HTML scraping module. These reviews were scrubbed using `langdetect` module to remove reviews written in Slovak language. This dataset was also scrubbed against a collection of Czech stopwords.  To have the data balanced with the same amount of negative and positive reviews, the
 final dataset had to be reduced to 11.5k positive and 11.5k negative reviews.
- This dataset was scrubbed against a collection of Czech stopwords. 
 
 ##### ML Models
 From `Scikit-Learn` Python library, `Naive Bayes`, `Logistic regression` and `Support Vector Machine` ML models were used
@@ -20,6 +24,11 @@ The overall sentiment score for the specified text input is calculated as a weig
 The Flask web application is currently hosted at <a href="http://czester.herokuapp.com">http://czester.herokuapp.com</a>, source code can be found in this location <a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/tree/master/flask_webapp">/flask_webapp/</a>.
 This application backend is written in Python using the `Flask` framework and `Bootstrap` for the templates styling. This app also provides the users with a simple API. The stats module is a result of an integration between `Charts.js` and `Flask` where the statistics data persistence layer can be either `Sqlite3` or `Heroku Postgres`.
 If you provide this app with a environment variable named `DATABASE_URL` containing the Heroku Postgres DB URL like `postgres://YourPostgresUrl`, then remote `Heroku Postgres` will be used, otherwise local `Sqlite3` db instance will be used.
+
+Input text dataflow diagram:
+![alt text][input_text_dataflow]
+
+[input_text_dataflow]: https://github.com/datahappy1/czech_language_sentiment_analyzer/blob/master/docs/img/input_text_flow_diagram.png "input text dataflow"
 
 ##### How to run this Flask App from local environment
 1) create and activate a standard Python virtual or pipenv environment <br>
