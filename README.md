@@ -1,5 +1,5 @@
 ##### 10000 ft. Overview
-![alt text][10000ft_overview]
+![10000 ft overview][10000ft_overview]
 
 [10000ft_overview]: https://github.com/datahappy1/czech_language_sentiment_analyzer/blob/master/docs/img/10000ft_project_overview.png?raw=true "10000 ft. overview"
 
@@ -25,8 +25,8 @@ The Flask web application is currently hosted at <a href="http://czester.herokua
 This application backend is written in Python using the `Flask` framework and `Bootstrap` for the templates styling. This app also provides the users with a simple API. The stats module is a result of an integration between `Charts.js` and `Flask` where the statistics data persistence layer can be either `Sqlite3` or `Heroku Postgres`.
 If you provide this app with a environment variable named `DATABASE_URL` containing the Heroku Postgres DB URL like `postgres://YourPostgresUrl`, then remote `Heroku Postgres` will be used, otherwise local `Sqlite3` db instance will be used.
 
-Input text dataflow diagram:
-![alt text][input_text_dataflow]
+##### Input text dataflow diagram:
+![Input text dataflow diagram][input_text_dataflow]
 
 [input_text_dataflow]: https://github.com/datahappy1/czech_language_sentiment_analyzer/blob/master/docs/img/input_text_flow_diagram.png?raw=true "input text dataflow"
 
