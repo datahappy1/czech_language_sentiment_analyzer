@@ -110,8 +110,10 @@ class Database:
             cur.execute(self.db_check_table_exists)
             try:
                 _table_exists = cur.fetchone()[0]
-            # if table does not exist, pass to create the table
-            except (TypeError, Exception):
+            # if local stats.db database file does not exist,
+            # query for checking the table exists returns None,
+            # pass to create the local database and table
+            except TypeError:
                 _table_exists = None
 
             if _table_exists == 1:
