@@ -68,7 +68,7 @@ def _stats_to_table_writer(sentiment_result):
         get_db().commit()
         status = 'Stats data stored OK'
     except Exception as exc:
-        status = 'Could not store the stats, %s'.format(exc)
+        status = 'Could not store the stats, {}'.format(exc)
 
     return status
 

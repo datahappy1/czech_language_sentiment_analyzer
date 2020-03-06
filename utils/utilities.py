@@ -159,7 +159,7 @@ class Webapp:
 
         # let's do the grouping of this dataset and sum the 1's and 0's
         for k, g in groupby(_data_set_for_grouping, lambda x: x[1]):
-            _grouped_item = sum(r[2] for r in g), k[0], k[1]
+            _grouped_item = sum(r[2] for r in g), k
             pie_chart_by_sentiment_output.append(_grouped_item)
 
         all_charts_output['pie_by_sentiment']['group_keys'] = sorted(sentiment_values)

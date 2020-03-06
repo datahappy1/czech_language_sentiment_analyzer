@@ -2,6 +2,7 @@ import os
 import urllib.parse as urlparse
 from flask_webapp.database import conn_local_sqlite, conn_remote_postgres
 
+
 class QueryCommon:
     # drop the stats table
     DB_DROP_TABLE = """
@@ -107,7 +108,11 @@ class Database:
         with self.conn:
             cur = self.conn.cursor()
             cur.execute(self.db_check_table_exists)
-            _table_exists = cur.fetchone()[0]
+            try:
+                _table_exists = cur.fetchone()[0]
+            # if table does not exist, pass to create the table
+            except (TypeError, Exception):
+                _table_exists = None
 
             if _table_exists == 1:
                 # check the count of all rows in the stats table
