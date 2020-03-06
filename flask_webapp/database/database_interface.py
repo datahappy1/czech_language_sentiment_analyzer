@@ -108,15 +108,11 @@ class Database:
         with self.conn:
             cur = self.conn.cursor()
             cur.execute(self.db_check_table_exists)
-            try:
-                _table_exists = cur.fetchone()[0]
-            # if local stats.db database file does not exist,
-            # query for checking the table exists returns None,
-            # pass to create the local database and table
-            except TypeError:
-                _table_exists = None
 
-            if _table_exists == 1:
+            _table_exists = None
+            _table_exists = cur.fetchone()
+
+            if _table_exists and _table_exists[0] == 1:
                 # check the count of all rows in the stats table
                 cur.execute(self.db_select_count_rows_query)
                 _rowcount = cur.fetchone()[0]
