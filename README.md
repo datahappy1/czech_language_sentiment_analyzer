@@ -22,7 +22,7 @@ The overall sentiment score for the specified text input is calculated as a weig
 
 ##### Flask web application
 The Flask web application is currently hosted at <a href="http://czester.herokuapp.com">http://czester.herokuapp.com</a>, source code can be found in this location <a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/tree/master/flask_webapp">/flask_webapp/</a>.
-This application backend is written in Python using the `Flask` framework and `Bootstrap` for the templates styling. This app also provides the users with a simple API. The stats module is a result of an integration between `Charts.js` and `Flask` where the statistics data persistence layer can be either `Sqlite3` or `Heroku Postgres`.
+This application backend is written in Python using the `Flask` framework and `Bootstrap` for the templates styling. This app also provides the users with a simple API. The stats module is a result of an integration between `Chart.js` and `Flask` where the statistics data persistence layer can be either `Sqlite3` or `Heroku Postgres`.
 If you provide this app with a environment variable named `DATABASE_URL` containing the Heroku Postgres DB URL like `postgres://YourPostgresUrl`, then remote `Heroku Postgres` will be used, otherwise local `Sqlite3` db instance will be used.
 
 ##### Input text dataflow diagram:
@@ -51,6 +51,6 @@ If you provide this app with a environment variable named `DATABASE_URL` contain
     <li><a href="https://www.pluralsight.com/guides/ensemble-modeling-scikit-learn">Ensembling with Scikit-Learn</a></li>
     <li><a href="https://towardsdatascience.com/two-is-better-than-one-ensembling-models-611ee4fa9bd8">Ensembling models</a></li>
     <li><a href="https://pypi.org/project/langdetect/">Langdetect PyPi project homepage</a></li>
-    <li><a href="https://www.chartjs.org/docs/latest/charts/">Charts.js homepage</a></li>
+    <li><a href="https://www.chartjs.org/docs/latest/charts/">Chart.js homepage</a></li>
     <li><a href="https://medium.com/the-andela-way/deploying-a-python-flask-app-to-heroku-41250bda27d0">Deploying Flask to Heroku tutorial</a></li>
 </ul>
