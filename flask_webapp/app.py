@@ -154,8 +154,7 @@ def main():
         return render_template('index.html')
 
     elif request.method == 'POST':
-        input_text = request.form.get('Input_Text')
-        input_text = str(input_text).lower()
+        input_text = request.form.get('Input_Text').lower()
         input_text_list = Webapp.input_string_preparator(input_text)
 
         if len(input_text_list) < 3:
@@ -175,13 +174,13 @@ def main():
                                    template_input_string=input_text,
                                    template_error_message="Sorry, need to submit text written in Czech")
         else:
-            input_text_list = ' '.join(input_text_list)
-            sentiment_result = webapp_interface.ml_model_evaluator([input_text_list])
+            input_text_for_eval = ' '.join(input_text_list)
+            sentiment_result = webapp_interface.ml_model_evaluator([input_text_for_eval])
 
             _stats_to_table_writer(sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment'))
 
             return render_template('index.html',
-                                   template_input_string=input_text,
+                                   template_input_string=input_text_for_eval,
                                    template_sentiment_result=sentiment_result)
 
 
@@ -189,12 +188,11 @@ def main():
 def api():
     """
     CURL POST example:
-    curl -X POST -F Input_Text="your text for analysis" http://127.0.0.1/api/v1/prediction/
+    curl -X POST -F Input_Text="your text for analysis" http://127.0.0.1:5000/api/v1/prediction/
     :return:
     """
     if request.method == 'POST':
-        input_text = request.form.get('Input_Text')
-        input_text = str(input_text).lower()
+        input_text = request.form.get('Input_Text').lower()
         input_text_list = Webapp.input_string_preparator(input_text)
 
         if len(input_text_list) < 3:
@@ -226,8 +224,8 @@ def api():
             return response
 
         else:
-            input_text_list = ' '.join(input_text_list)
-            sentiment_result = webapp_interface.ml_model_evaluator([input_text_list])
+            input_text_list_for_eval = ' '.join(input_text_list)
+            sentiment_result = webapp_interface.ml_model_evaluator([input_text_list_for_eval])
 
             _stats_to_table_writer(sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment'))
 

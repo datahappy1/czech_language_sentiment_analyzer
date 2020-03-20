@@ -42,9 +42,7 @@ def logistic_regression(persist_model_to_file):
     for tfg in temp_file_gen:
         if len(tfg) == 2:
             try:
-                _detected_lang = detect(ProjectCommon.remove_non_alpha_chars(
-                    ProjectCommon.remove_html(tfg[0]))
-                )
+                _detected_lang = detect(ProjectCommon.remove_non_alpha_chars_and_html(tfg[0]))
             except lang_detect_exception.LangDetectException:
                 continue
             if  _detected_lang == 'cs':

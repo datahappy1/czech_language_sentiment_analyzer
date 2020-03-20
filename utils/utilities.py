@@ -5,6 +5,8 @@ import os
 import re
 import functools
 from itertools import groupby, product
+from data_preparation import czech_stemmer
+
 
 CZECH_STOPWORDS_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
                                                          'data_preparation', 'czech_stopwords.txt'))
@@ -89,18 +91,36 @@ class ProjectCommon:
 
 
     @staticmethod
-    def remove_all(text) -> str:
+    def trimmer(text) -> str:
         """
-        function for running all-in-one replace functions incl. stripping empty
+        function removing left and right trims
         :param text:
         :return:
         """
         text_output_trimmed = text.lstrip(' ').rstrip(' ')
+        return text_output_trimmed
+
+
+    @staticmethod
+    def remove_non_alpha_chars_and_html(text) ->str:
+        text_output_trimmed = ProjectCommon.trimmer(text)
 
         text_output_no_html = ProjectCommon.remove_html(text_output_trimmed)
 
         text_output_no_html_no_non_alpha_chars = \
             ProjectCommon.remove_non_alpha_chars(text_output_no_html)
+        return text_output_no_html_no_non_alpha_chars
+
+
+    @staticmethod
+    def remove_all(text) -> str:
+        """
+        function for running all-in-one replace functions
+        :param text:
+        :return:
+        """
+        text_output_no_html_no_non_alpha_chars = \
+            ProjectCommon.remove_non_alpha_chars_and_html(text)
 
         text_output_no_html_no_non_alpha_chars_no_diacritics = \
             ProjectCommon.remove_diacritics(text_output_no_html_no_non_alpha_chars)
@@ -108,7 +128,10 @@ class ProjectCommon:
         text_output_no_html_no_non_alpha_chars_no_diacritics_no_stopwords = \
             ProjectCommon.remove_czech_stopwords(text_output_no_html_no_non_alpha_chars_no_diacritics)
 
-        return text_output_no_html_no_non_alpha_chars_no_diacritics_no_stopwords
+        text_output_no_html_no_non_alpha_chars_no_diacritics_no_stopwords_stemmed = \
+            czech_stemmer.stemmer(text_output_no_html_no_non_alpha_chars_no_diacritics_no_stopwords)
+
+        return text_output_no_html_no_non_alpha_chars_no_diacritics_no_stopwords_stemmed
 
 
 class Webapp:
@@ -119,7 +142,7 @@ class Webapp:
         :param input_string:
         :return:
         """
-        input_text_list_raw = input_string.split(' ')
+        input_text_list_raw = re.split(';|,|[ ]|-|[?]|[!]|\n',input_string)
         input_text_list = [ProjectCommon.remove_all(x) for x in input_text_list_raw if x != '']
 
         return input_text_list
