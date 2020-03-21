@@ -166,5 +166,5 @@ def _palatalise(word):
 
 
 def stemmer(string):
-    return ' '.join(map(str, [_cz_stem(word, aggressive=True) for word in string.split(' ')]))
+    return ' '.join(map(str, [_cz_stem(word, aggressive=True) for word in string.split(' ')])).replace('  ', '')
 

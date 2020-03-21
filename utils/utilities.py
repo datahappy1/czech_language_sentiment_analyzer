@@ -98,17 +98,24 @@ class ProjectCommon:
         :return:
         """
         text_output_trimmed = text.lstrip(' ').rstrip(' ')
+
         return text_output_trimmed
 
 
     @staticmethod
     def remove_non_alpha_chars_and_html(text) ->str:
+        """
+        function for removals of all non alpha chars and html in the input string
+        :param text:
+        :return:
+        """
         text_output_trimmed = ProjectCommon.trimmer(text)
 
         text_output_no_html = ProjectCommon.remove_html(text_output_trimmed)
 
         text_output_no_html_no_non_alpha_chars = \
             ProjectCommon.remove_non_alpha_chars(text_output_no_html)
+
         return text_output_no_html_no_non_alpha_chars
 
 
