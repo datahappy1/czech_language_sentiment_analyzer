@@ -155,6 +155,12 @@ def main():
 
     elif request.method == 'POST':
         input_text = request.form.get('Input_Text')
+
+        if not input_text:
+            return render_template('index.html',
+                                   template_input_string=input_text,
+                                   template_error_message="Sorry, need to submit at least 3 non stop-words")
+
         input_text_lowered = input_text.lower()
         input_text_lowered_list = Webapp.input_string_preparator(input_text_lowered)
 
@@ -195,6 +201,15 @@ def api():
     """
     if request.method == 'POST':
         input_text = request.form.get('Input_Text')
+        if not input_text:
+            response = jsonify({
+                'status': 400,
+                'error': 'Sorry, need to submit at least 3 non stop-words',
+                'mimetype': 'application/json'
+            })
+            response.status_code = 400
+            return response
+
         input_text_lowered = input_text.lower()
         input_text_lowered_list = Webapp.input_string_preparator(input_text_lowered)
 

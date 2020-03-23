@@ -51,10 +51,10 @@ def ml_model_evaluator(input_string):
                                             (prediction_logistic_regression_prob * PRECISION_LR_WEIGHT_AVG) + \
                                             (prediction_support_vector_machine_prob * PRECISION_SVM_WEIGHT_AVG), 2)
 
-    if prediction_output_overall_proba < 0.45:
+    if prediction_output_overall_proba <= 0.45:
         prediction_output['overall_sentiment'] = {'sentiment': 'positive',
                                                   'probability': prediction_output_overall_proba}
-    elif prediction_output_overall_proba > 0.55:
+    elif prediction_output_overall_proba >= 0.55:
         prediction_output['overall_sentiment'] = {'sentiment': 'negative',
                                                   'probability': prediction_output_overall_proba}
     else:
