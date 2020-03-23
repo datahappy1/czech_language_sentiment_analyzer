@@ -129,16 +129,16 @@ class ProjectCommon:
         text_output_no_html_no_non_alpha_chars = \
             ProjectCommon.remove_non_alpha_chars_and_html(text)
 
-        text_output_no_html_no_non_alpha_chars_no_diacritics = \
-            ProjectCommon.remove_diacritics(text_output_no_html_no_non_alpha_chars)
+        text_output_no_html_no_non_alpha_chars_no_stopwords = \
+            ProjectCommon.remove_czech_stopwords(text_output_no_html_no_non_alpha_chars)
 
-        text_output_no_html_no_non_alpha_chars_no_diacritics_no_stopwords = \
-            ProjectCommon.remove_czech_stopwords(text_output_no_html_no_non_alpha_chars_no_diacritics)
+        text_output_no_html_no_non_alpha_chars_no_stopwords_stemmed = \
+            czech_stemmer.stemmer(text_output_no_html_no_non_alpha_chars_no_stopwords)
 
-        text_output_no_html_no_non_alpha_chars_no_diacritics_no_stopwords_stemmed = \
-            czech_stemmer.stemmer(text_output_no_html_no_non_alpha_chars_no_diacritics_no_stopwords)
+        text_output_no_html_no_non_alpha_chars_no_stopwords_stemmed_no_diacritics = \
+            ProjectCommon.remove_diacritics(text_output_no_html_no_non_alpha_chars_no_stopwords_stemmed)
 
-        return text_output_no_html_no_non_alpha_chars_no_diacritics_no_stopwords_stemmed
+        return text_output_no_html_no_non_alpha_chars_no_stopwords_stemmed_no_diacritics
 
 
 class Webapp:

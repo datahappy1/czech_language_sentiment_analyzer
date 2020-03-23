@@ -13,7 +13,7 @@ CZECH_STOPWORDS_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file_
                                                          'data_preparation', 'czech_stopwords.txt'))
 
 TEMP_FILE_PATH = '../../data_preparation/reviews_with_ranks.csv'
-PERSIST_MODEL_TO_FILE = False
+PERSIST_MODEL_TO_FILE = True
 
 
 def _read_temp_file_generator():
@@ -86,4 +86,4 @@ def logistic_regression(persist_model_to_file):
 
 
 if __name__ == "__main__":
-    logistic_regression(PERSIST_MODEL_TO_FILE)
+    print(logistic_regression(PERSIST_MODEL_TO_FILE))
