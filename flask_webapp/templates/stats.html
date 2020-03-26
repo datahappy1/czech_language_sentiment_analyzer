@@ -21,10 +21,10 @@
     <div class="container">
         <div class="row">
             <div class="col">
-                <canvas id="pieChartSentiment"></canvas>
+                <canvas id="pieChartSentiment" style="height:300px"></canvas>
             </div>
             <div class="col">
-                <canvas id="stackedChart"></canvas>
+                <canvas id="stackedChart" style="height:300px"></canvas>
             </div>
         </div>
     </div>
@@ -50,7 +50,7 @@
               },
               rotation: (-0.5 * Math.PI),
               responsive: true,
-              maintainAspectRatio: true,
+              maintainAspectRatio: false,
             }
         });
 
@@ -102,7 +102,7 @@
                   }]
                 },
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     legend: { position: 'top' },
                 }
         });
