@@ -184,6 +184,7 @@ svým
 svymi
 svými
 ta
+tahle
 tak
 take
 také
@@ -218,6 +219,7 @@ tomu
 tomuto
 toto
 tu
+tuhle
 tuto
 ty
 tyto

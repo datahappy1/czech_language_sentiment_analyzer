@@ -23,9 +23,9 @@ MODEL_LR = _pickle_load('logistic_regression', 'model.pkl')
 MODEL_SVM = _pickle_load('support_vector_machine', 'model.pkl')
 
 # prepare the overall sentiment model weights
-PRECISION_NB = 0.902
-PRECISION_LR = 0.828
-PRECISION_SVM = 0.848
+PRECISION_NB = 0.890
+PRECISION_LR = 0.840
+PRECISION_SVM = 0.857
 PRECISION_SUM = PRECISION_NB + PRECISION_LR + PRECISION_SVM
 PRECISION_NB_WEIGHT_AVG = PRECISION_NB / PRECISION_SUM
 PRECISION_LR_WEIGHT_AVG = PRECISION_LR / PRECISION_SUM
@@ -51,10 +51,10 @@ def ml_model_evaluator(input_string):
                                             (prediction_logistic_regression_prob * PRECISION_LR_WEIGHT_AVG) + \
                                             (prediction_support_vector_machine_prob * PRECISION_SVM_WEIGHT_AVG), 2)
 
-    if prediction_output_overall_proba < 0.48:
+    if prediction_output_overall_proba <= 0.45:
         prediction_output['overall_sentiment'] = {'sentiment': 'positive',
                                                   'probability': prediction_output_overall_proba}
-    elif prediction_output_overall_proba > 0.52:
+    elif prediction_output_overall_proba >= 0.55:
         prediction_output['overall_sentiment'] = {'sentiment': 'negative',
                                                   'probability': prediction_output_overall_proba}
     else:

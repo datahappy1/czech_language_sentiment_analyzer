@@ -155,28 +155,35 @@ def main():
 
     elif request.method == 'POST':
         input_text = request.form.get('Input_Text')
-        input_text = str(input_text).lower()
-        input_text_list = Webapp.input_string_preparator(input_text)
 
-        if len(input_text_list) < 3:
+        if not input_text:
             return render_template('index.html',
                                    template_input_string=input_text,
                                    template_error_message="Sorry, need to submit at least 3 non stop-words")
 
-        if all([len(i) < 3 for i in input_text_list]):
+        input_text_lowered = input_text.lower()
+        input_text_lowered_list = Webapp.input_string_preparator(input_text_lowered)
+
+        if len(input_text_lowered_list) < 3:
+            return render_template('index.html',
+                                   template_input_string=input_text,
+                                   template_error_message="Sorry, need to submit at least 3 non stop-words")
+
+        if all([len(i) < 3 for i in input_text_lowered_list]):
             return render_template('index.html',
                                    template_input_string=input_text,
                                    template_error_message="Sorry, need to submit at least 1 word with 3 and more "
                                                           "characters")
 
         detected_lang = detect(input_text)
+
         if detected_lang not in app.config['acceptable_detected_language_codes']:
             return render_template('index.html',
                                    template_input_string=input_text,
                                    template_error_message="Sorry, need to submit text written in Czech")
         else:
-            input_text_list = ' '.join(input_text_list)
-            sentiment_result = webapp_interface.ml_model_evaluator([input_text_list])
+            input_text_for_eval = ' '.join(input_text_lowered_list)
+            sentiment_result = webapp_interface.ml_model_evaluator([input_text_for_eval])
 
             _stats_to_table_writer(sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment'))
 
@@ -189,15 +196,12 @@ def main():
 def api():
     """
     CURL POST example:
-    curl -X POST -F Input_Text="your text for analysis" http://127.0.0.1/api/v1/prediction/
+    curl -X POST -F Input_Text="your text for analysis" http://127.0.0.1:5000/api/v1/prediction/
     :return:
     """
     if request.method == 'POST':
         input_text = request.form.get('Input_Text')
-        input_text = str(input_text).lower()
-        input_text_list = Webapp.input_string_preparator(input_text)
-
-        if len(input_text_list) < 3:
+        if not input_text:
             response = jsonify({
                 'status': 400,
                 'error': 'Sorry, need to submit at least 3 non stop-words',
@@ -206,7 +210,19 @@ def api():
             response.status_code = 400
             return response
 
-        if all([len(i) < 3 for i in input_text_list]):
+        input_text_lowered = input_text.lower()
+        input_text_lowered_list = Webapp.input_string_preparator(input_text_lowered)
+
+        if len(input_text_lowered_list) < 3:
+            response = jsonify({
+                'status': 400,
+                'error': 'Sorry, need to submit at least 3 non stop-words',
+                'mimetype': 'application/json'
+            })
+            response.status_code = 400
+            return response
+
+        if all([len(i) < 3 for i in input_text_lowered_list]):
             response = jsonify({
                 'status': 400,
                 'error': 'Sorry, need to submit at least 1 word with 3 and more characters',
@@ -226,8 +242,8 @@ def api():
             return response
 
         else:
-            input_text_list = ' '.join(input_text_list)
-            sentiment_result = webapp_interface.ml_model_evaluator([input_text_list])
+            input_text_list_for_eval = ' '.join(input_text_lowered_list)
+            sentiment_result = webapp_interface.ml_model_evaluator([input_text_list_for_eval])
 
             _stats_to_table_writer(sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment'))
 

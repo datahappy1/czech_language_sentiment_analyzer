@@ -6,7 +6,7 @@
 ##### Data Collection
 56k Czech movie reviews were collected using the <a href="https://github.com/datahappy1/czech_language_sentiment_analyzer/blob/master/data_preparation/data_collector_movie_review_scraper.py">/data_preparation/data_collector_movie_review_scraper.py</a>
 multithreaded HTML scraping module. These reviews were scrubbed using `langdetect` module to remove reviews written in Slovak language. This dataset was also scrubbed against a collection of Czech stopwords.  To have the data balanced with the same amount of negative and positive reviews, the
-final dataset had to be reduced to 11.5k positive and 11.5k negative reviews.
+final dataset had to be reduced to 11.5k positive and 11.5k negative reviews. Collected data was also stemmed before training the models.
 
 ##### ML Models
 From `Scikit-Learn` Python library, `Naive Bayes`, `Logistic regression` and `Support Vector Machine` ML models were used
@@ -40,7 +40,7 @@ If you provide this app with a environment variable named `DATABASE_URL` contain
     <li><del>Remove reviews written in Slovak language</del> 	&#10003;</li>
     <li><del>Verify input text is written in Czech language</del> 	&#10003;</li>
     <li><del>Add Flask web app tests</del> 	&#10003;</li>
-    <li>Czech word lemmatizer / stemmatizer module</li>
+    <li><del>Czech word stemmatizer module</del> 	&#10003;</li>
     <li>Ensembling instead of weighted model precision average for overall sentiment</li>
     <li>Redis could replace Sqlite3 / Postgres</li>
 </ul>
