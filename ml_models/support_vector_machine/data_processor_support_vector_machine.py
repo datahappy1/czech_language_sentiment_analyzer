@@ -14,7 +14,6 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.pipeline import Pipeline
 from utils.utilities import ProjectCommon
 
-
 CZECH_STOPWORDS_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
                                                          'data_preparation', 'czech_stopwords.txt'))
 
@@ -30,7 +29,7 @@ def _read_temp_file_generator():
     for row in open(TEMP_FILE_PATH, encoding="utf8"):
         try:
             yield (row.split(',')[0].replace('"', ''),
-                   'neg' if int(row.split(',')[1]) <0 else 'pos')
+                   'neg' if int(row.split(',')[1]) < 0 else 'pos')
         except IndexError:
             yield '#NA'
 
@@ -51,11 +50,11 @@ def support_vector_machine(persist_model_to_file):
                 _detected_lang = detect(ProjectCommon.remove_non_alpha_chars_and_html(tfg[0]))
             except lang_detect_exception.LangDetectException:
                 continue
-            if  _detected_lang == 'cs':
+            if _detected_lang == 'cs':
                 temp_file_reviews_work.append((ProjectCommon.remove_all(tfg[0]), tfg[1]))
 
     temp_file_reviews_work = [x for x in temp_file_reviews_work if x[1] == 'neg'][:11500] + \
-                         [x for x in temp_file_reviews_work if x[1] == 'pos'][:11500]
+                             [x for x in temp_file_reviews_work if x[1] == 'pos'][:11500]
 
     random.shuffle(temp_file_reviews_work)
 
@@ -67,8 +66,8 @@ def support_vector_machine(persist_model_to_file):
         ('vect', CountVectorizer()),
         ('tfidf', TfidfTransformer()),
         ('clf', SGDClassifier(loss='log', penalty='l2',
-                              alpha = 1e-3, random_state = 42,
-                              max_iter = 5, tol = None)),
+                              alpha=1e-3, random_state=42,
+                              max_iter=5, tol=None)),
     ])
 
     text_clf.fit(Train_X, Train_Y)
@@ -83,9 +82,9 @@ def support_vector_machine(persist_model_to_file):
     gs_clf = gs_clf.fit(Train_X, Train_Y)
 
     if persist_model_to_file:
-        pickle.dump(gs_clf, open('model.pkl','wb'))
+        pickle.dump(gs_clf, open('model.pkl', 'wb'))
 
-    # # accuracy score calculation: 0.822
+    # # accuracy score calculation: 0.847
     # print(np.mean(predicted == Test_Y))
     # print(metrics.classification_report(Test_Y, predicted, target_names = ['neg', 'pos']))
 

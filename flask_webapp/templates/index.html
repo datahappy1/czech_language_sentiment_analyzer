@@ -9,7 +9,7 @@
     {% if template_sentiment_result %}
             <!--<label for="result_{{ key }}"></label>-->
             {% for key, value in template_sentiment_result.items() %}
-            <div id="result_{{ key }}"
+            <div id="result_overall_sentiment"
                  {% if value.get('sentiment') =="positive" %}
                     class="alert alert-success"
                  {% endif %}
@@ -32,7 +32,7 @@
 
     {% if template_error_message %}
         <!--<label for="error_message"></label>-->
-        <div id="error_message" class="alert alert-danger">{{ template_error_message }}</div>
+        <div id="error_message" class="alert alert-danger" style="display:block;">{{ template_error_message }}</div>
     {% endif %}
 
     <form action="{{ url_for('main') }}" method="POST" enctype="multipart/form-data">
@@ -42,6 +42,7 @@
                       placeholder="Input Czech text for sentiment analysis here" required>{{template_input_string}}</textarea>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
+        <button class="btn btn-warning" onClick="clear_textarea_and_sentiment_result()">Clear</button>
     </form>
 
 </div>
@@ -53,6 +54,11 @@
             document.getElementById('link_show_details').style.display='none';
         }
         return false;
+    }
+
+    function clear_textarea_and_sentiment_result() {
+        document.getElementById('Input_Text').value = "";
+        document.getElementById('result_overall_sentiment').style.display='none';
     }
 </script>
 
