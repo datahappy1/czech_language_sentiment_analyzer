@@ -3,7 +3,7 @@
 
 <div class="container-fluid">
     <div class="p-3">
-        <h3>Hi! I'm Czester, your CZEch SenTiment analyzER tool.</h3>
+        <h3>Hi! I'm Czester, a Czech text sentiment analyzer tool</h3>
     </div>
 
     {% if template_sentiment_result %}
@@ -43,25 +43,5 @@
     </form>
 
 </div>
-
-<script>
-    function show_details() {
-        if(document.getElementById('span_with_details').style.display=='none') {
-            document.getElementById('span_with_details').style.display='block';
-            document.getElementById('link_show_details').style.display='none';
-        }
-        return false;
-    }
-
-    function clear_textarea_and_alert() {
-        document.getElementById('Input_Text').value = '';
-        if (document.getElementById('error_message')) {
-            document.getElementById('error_message').style.display='none';
-        }
-        if (document.getElementById('result_overall_sentiment')) {
-        document.getElementById('result_overall_sentiment').style.display='none';
-        }
-    }
-</script>
 
 {% endblock %}
