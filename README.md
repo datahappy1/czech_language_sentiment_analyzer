@@ -40,7 +40,7 @@ If you provide this app with a environment variable named `DATABASE_URL` contain
     <li><del>Remove reviews written in Slovak language</del> 	&#10003;</li>
     <li><del>Verify input text is written in Czech language</del> 	&#10003;</li>
     <li><del>Add Flask web app tests</del> 	&#10003;</li>
-    <li>Test the Czech word stemmatizer module</li>
+    <li><del>Add Czech word stemmatizer module</del> 	&#10003;</li>
     <li>Ensembling instead of weighted model precision average for overall sentiment</li>
     <li>Redis could replace Sqlite3 / Postgres</li>
 </ul>

@@ -9,13 +9,13 @@ Ported from the Java implementation available at:
 import re
 
 
-def _cz_stem(word, aggressive=False):
+def _cz_stem(word, aggressive):
     if not re.match("^\\w+$", word):
         return word
     if not word.islower() and not word.istitle() and not word.isupper():
         # skip word
         return ''
-    s = word.lower() # all our pattern matching is done in lowercase
+    s = word.lower()  # all our pattern matching is done in lowercase
     s = _remove_case(s)
     s = _remove_possessives(s)
     if aggressive:
@@ -166,5 +166,4 @@ def _palatalise(word):
 
 
 def stemmer(string):
-    return ' '.join(map(str, [_cz_stem(word, aggressive=False) for word in string.split(' ')])).replace('  ', '')
-
+    return ' '.join(map(str, [_cz_stem(word, aggressive=True) for word in string.split(' ')])).replace('  ', '')

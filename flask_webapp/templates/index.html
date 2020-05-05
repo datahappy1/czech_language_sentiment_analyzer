@@ -7,7 +7,6 @@
     </div>
 
     {% if template_sentiment_result %}
-            <!--<label for="result_{{ key }}"></label>-->
             {% for key, value in template_sentiment_result.items() %}
             <div id="result_overall_sentiment"
                  {% if value.get('sentiment') =="positive" %}
@@ -31,18 +30,16 @@
     {% endif %}
 
     {% if template_error_message %}
-        <!--<label for="error_message"></label>-->
         <div id="error_message" class="alert alert-danger" style="display:block;">{{ template_error_message }}</div>
     {% endif %}
 
     <form action="{{ url_for('main') }}" method="POST" enctype="multipart/form-data">
         <div class="form-group">
-            <!--<label for="InputText"></label>-->
             <textarea class="form-control" id="Input_Text" name="Input_Text" rows="5" maxlength="1000"
                       placeholder="Input Czech text for sentiment analysis here" required>{{template_input_string}}</textarea>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
-        <button class="btn btn-warning" onClick="clear_textarea_and_sentiment_result()">Clear</button>
+        <button class="btn btn-warning" onClick="clear_textarea_and_alert()">Clear</button>
     </form>
 
 </div>
@@ -56,9 +53,14 @@
         return false;
     }
 
-    function clear_textarea_and_sentiment_result() {
-        document.getElementById('Input_Text').value = "";
+    function clear_textarea_and_alert() {
+        document.getElementById('Input_Text').value = '';
+        if (document.getElementById('error_message')) {
+            document.getElementById('error_message').style.display='none';
+        }
+        if (document.getElementById('result_overall_sentiment')) {
         document.getElementById('result_overall_sentiment').style.display='none';
+        }
     }
 </script>
 

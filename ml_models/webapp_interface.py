@@ -23,9 +23,9 @@ MODEL_LR = _pickle_load('logistic_regression', 'model.pkl')
 MODEL_SVM = _pickle_load('support_vector_machine', 'model.pkl')
 
 # prepare the overall sentiment model weights
-PRECISION_NB = 0.903
-PRECISION_LR = 0.821
-PRECISION_SVM = 0.847
+PRECISION_NB = 0.886
+PRECISION_LR = 0.837
+PRECISION_SVM = 0.846
 PRECISION_SUM = PRECISION_NB + PRECISION_LR + PRECISION_SVM
 PRECISION_NB_WEIGHT_AVG = PRECISION_NB / PRECISION_SUM
 PRECISION_LR_WEIGHT_AVG = PRECISION_LR / PRECISION_SUM
