@@ -7,7 +7,7 @@ function show_details() {
 }
 
 function clear_textarea_and_alert() {
-    document.getElementById('Input_Text').value = '';
+    document.getElementById('Input_Text').value = "";
     if (document.getElementById('error_message')) {
         document.getElementById('error_message').style.display='none';
     }

@@ -34,11 +34,14 @@
     {% endif %}
 
     <form action="{{ url_for('main') }}" method="POST" enctype="multipart/form-data">
+
         <div class="form-group">
             <textarea class="form-control" id="Input_Text" name="Input_Text" rows="5" maxlength="1000"
-                      placeholder="Input Czech text for sentiment analysis here" required>{{template_input_string}}</textarea>
+                      placeholder="Input Czech text for sentiment analysis here"
+                      onkeyup="disable_enable_buttons()" required>{{template_input_string}}</textarea>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+
+        <button class="btn btn-primary" type="submit">Submit</button>
         <button class="btn btn-warning" onClick="clear_textarea_and_alert()">Clear</button>
     </form>
 
