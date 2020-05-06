@@ -16,9 +16,8 @@ def test_main_get():
 def test_main_post_no_input_text():
     app.testing = True
     response = app.test_client().post('/')
-
     assert response.status_code == 200
-    assert b'<div id="error_message" class="alert alert-danger">' \
+    assert b'<div id="error_message" class="alert alert-danger" style="display:block;">' \
            b'Sorry, need to submit at least 3 non stop-words</div>' in response.data
 
 
@@ -27,7 +26,7 @@ def test_main_post_invalid_input_text_too_few_words():
                                       follow_redirects=True)
 
     assert response.status_code == 200
-    assert b'<div id="error_message" class="alert alert-danger">' \
+    assert b'<div id="error_message" class="alert alert-danger" style="display:block;">' \
            b'Sorry, need to submit at least 3 non stop-words</div>' in response.data
 
 
@@ -36,7 +35,7 @@ def test_main_post_invalid_input_text_too_short_words():
                                       follow_redirects=True)
 
     assert response.status_code == 200
-    assert b'<div id="error_message" class="alert alert-danger">' \
+    assert b'<div id="error_message" class="alert alert-danger" style="display:block;">' \
            b'Sorry, need to submit at least 1 word with 3 and more characters</div>' in response.data
 
 
@@ -45,7 +44,7 @@ def test_main_post_invalid_input_text_not_czech_language():
                                       follow_redirects=True)
 
     assert response.status_code == 200
-    assert b'<div id="error_message" class="alert alert-danger">' \
+    assert b'<div id="error_message" class="alert alert-danger" style="display:block;">' \
            b'Sorry, need to submit text written in Czech</div>' in response.data
 
 

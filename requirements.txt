@@ -7,3 +7,4 @@ waitress>=1.4.0
 sklearn
 psycopg2-binary==2.8.4
 langdetect==1.0.7
+pytest
