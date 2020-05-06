@@ -55,5 +55,10 @@
 {% block content %}
 {% endblock %}
 
+<script>
+    $(document).ready(function () {
+    $("#{{request.endpoint}}").parent().addClass("active"); })
+</script>
+
 </body>
 </html>
