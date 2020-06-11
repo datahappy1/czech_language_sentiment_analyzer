@@ -101,7 +101,6 @@ class Database:
         return self.conn
 
     def db_builder(self):
-        # connect
         self.connect()
 
         # drop and re-create table
@@ -109,18 +108,18 @@ class Database:
             cur = self.conn.cursor()
             cur.execute(self.db_check_table_exists)
 
-            _table_exists = cur.fetchone()
+            table_exists_query_result = cur.fetchone()
 
-            if _table_exists and _table_exists[0] == 1:
+            if table_exists_query_result and table_exists_query_result[0] == 1:
                 # check the count of all rows in the stats table
                 cur.execute(self.db_select_count_rows_query)
-                _rowcount = cur.fetchone()[0]
+                rowcount = cur.fetchone()[0]
 
-                if _rowcount > 7000:
+                if rowcount > 7000:
                     # drop stats table if > 7000 rows due to
                     # Heroku Postgres free-tier limitation
                     cur.execute(self.db_drop_table)
-                    print(f"Dropped the stats table, row count: {_rowcount}")
+                    print(f"Dropped the stats table, row count: {rowcount}")
 
             # create stats table if not exists
             cur.execute(self.db_create_table)
