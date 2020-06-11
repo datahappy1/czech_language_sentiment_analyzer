@@ -109,7 +109,6 @@ class Database:
             cur = self.conn.cursor()
             cur.execute(self.db_check_table_exists)
 
-            _table_exists = None
             _table_exists = cur.fetchone()
 
             if _table_exists and _table_exists[0] == 1:
