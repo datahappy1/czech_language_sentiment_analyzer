@@ -12,7 +12,7 @@ function clear_textarea_and_alert() {
         document.getElementById('error_message').style.display='none';
     }
     if (document.getElementById('result_overall_sentiment')) {
-    document.getElementById('result_overall_sentiment').style.display='none';
+        document.getElementById('result_overall_sentiment').style.display='none';
     }
     return false;
 }

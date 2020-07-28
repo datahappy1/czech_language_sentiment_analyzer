@@ -22,7 +22,6 @@ def create_app():
 
 app = create_app()
 
-
 # bind flask-markdown extension to the app
 Markdown(app)
 # load the markdown file content for /methodology route
@@ -164,7 +163,7 @@ def main():
         input_text_lowered = input_text.lower()
         input_text_lowered_list = Webapp.input_string_preparator(input_text_lowered)
 
-        if len(input_text_lowered_list) < 3:
+        if len([i for i in input_text_lowered_list if i != '']) < 3:
             return render_template('index.html',
                                    template_input_string=input_text,
                                    template_error_message="Sorry, need to submit at least 3 non stop-words")
@@ -213,7 +212,7 @@ def api():
         input_text_lowered = input_text.lower()
         input_text_lowered_list = Webapp.input_string_preparator(input_text_lowered)
 
-        if len(input_text_lowered_list) < 3:
+        if len([i for i in input_text_lowered_list if i != '']) < 3:
             response = jsonify({
                 'status': 400,
                 'error': 'Sorry, need to submit at least 3 non stop-words',
