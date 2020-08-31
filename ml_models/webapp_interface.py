@@ -12,7 +12,9 @@ def _pickle_load(model_type, file_name):
     :param file_name:
     :return:
     """
-    return pickle.load(open(os.path.abspath(os.path.join(os.path.dirname(__file__), model_type, file_name)), 'rb'))
+    return pickle.load(
+        open(os.path.abspath(os.path.join(os.path.dirname(__file__), model_type, file_name)), 'rb')
+    )
 
 
 # pickle load ml models
@@ -43,13 +45,17 @@ def ml_model_evaluator(input_string):
     # prediction_logistic_regression = MODEL_LR.predict(VECTOR_LR.transform(input_string))
     # prediction_support_vector_machine = MODEL_SVM.predict(input_string)
 
-    prediction_naive_bayes_prob = MODEL_NB.predict_proba(VECTOR_NB.transform(input_string))[0][0]
-    prediction_logistic_regression_prob = MODEL_LR.predict_proba(VECTOR_LR.transform(input_string))[0][0]
-    prediction_support_vector_machine_prob = MODEL_SVM.predict_proba(input_string)[0][0]
+    prediction_naive_bayes_prob = \
+        MODEL_NB.predict_proba(VECTOR_NB.transform(input_string))[0][0]
+    prediction_logistic_regression_prob = \
+        MODEL_LR.predict_proba(VECTOR_LR.transform(input_string))[0][0]
+    prediction_support_vector_machine_prob = \
+        MODEL_SVM.predict_proba(input_string)[0][0]
 
-    prediction_output_overall_proba = round((prediction_naive_bayes_prob * PRECISION_NB_WEIGHT_AVG) + \
-                                            (prediction_logistic_regression_prob * PRECISION_LR_WEIGHT_AVG) + \
-                                            (prediction_support_vector_machine_prob * PRECISION_SVM_WEIGHT_AVG), 2)
+    prediction_output_overall_proba = \
+        round((prediction_naive_bayes_prob * PRECISION_NB_WEIGHT_AVG) +
+              (prediction_logistic_regression_prob * PRECISION_LR_WEIGHT_AVG) +
+              (prediction_support_vector_machine_prob * PRECISION_SVM_WEIGHT_AVG), 2)
 
     if prediction_output_overall_proba <= 0.45:
         prediction_output['overall_sentiment'] = {'sentiment': 'positive',

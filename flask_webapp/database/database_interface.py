@@ -1,9 +1,15 @@
+"""
+database interface module
+"""
 import os
 import urllib.parse as urlparse
 from flask_webapp.database import conn_local_sqlite, conn_remote_postgres
 
 
 class QueryCommon:
+    """
+    query common class
+    """
     # drop the stats table
     DB_DROP_TABLE = """
     DROP TABLE IF EXISTS stats; """
@@ -14,7 +20,9 @@ class QueryCommon:
 
 
 class QueryRemote:
-    # Postgres
+    """
+    query remote class for Postgres
+    """
     # create the stats table
     DB_CREATE_TABLE = """
     CREATE TABLE IF NOT EXISTS stats(
@@ -39,7 +47,9 @@ class QueryRemote:
 
 
 class QueryLocal:
-    # Sqlite3
+    """
+    query remote class for Sqlite3
+    """
     # create the stats table
     DB_CREATE_TABLE = """
     CREATE TABLE IF NOT EXISTS stats (
@@ -64,11 +74,13 @@ class QueryLocal:
 
 
 class Database:
+    """
+    main database interaction class
+    """
     def __init__(self, env):
         self.environment = env
         self.db_drop_table = QueryCommon.DB_DROP_TABLE
         self.db_select_count_rows_query = QueryCommon.DB_SELECT_COUNT_ROWS_QUERY
-        self.conn = None
 
         if self.environment == "remote":
             self.db_create_table = QueryRemote.DB_CREATE_TABLE
@@ -86,26 +98,34 @@ class Database:
             raise NotImplementedError
 
     def connect(self):
+        """
+        connect to database method
+        :return:
+        """
         if self.environment == "remote":
             db_url = os.environ.get('DATABASE_URL')
             db_url_parsed = urlparse.urlparse(db_url)
-            self.conn = conn_remote_postgres.create_connection(db_url_parsed)
+            conn = conn_remote_postgres.create_connection(db_url_parsed)
 
         elif self.environment == "local":
             db_file_loc = os.path.abspath(os.path.join(os.path.dirname(__file__), 'stats.db'))
-            self.conn = conn_local_sqlite.create_connection(db_file_loc)
+            conn = conn_local_sqlite.create_connection(db_file_loc)
 
         else:
             raise NotImplementedError
 
-        return self.conn
+        return conn
 
     def db_builder(self):
-        self.connect()
+        """
+        db builder method
+        :return:
+        """
+        conn = self.connect()
 
         # drop and re-create table
-        with self.conn:
-            cur = self.conn.cursor()
+        with conn:
+            cur = conn.cursor()
             cur.execute(self.db_check_table_exists)
 
             table_exists_query_result = cur.fetchone()

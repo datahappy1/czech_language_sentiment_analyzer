@@ -15,6 +15,9 @@ MARKDOWN_FILE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..
 
 
 class ProjectCommon:
+    """
+    project common helpers class
+    """
     @staticmethod
     @functools.lru_cache()
     def read_czech_stopwords(czech_stopwords_file_path) -> list:
@@ -38,11 +41,11 @@ class ProjectCommon:
         :param text:
         :return:
         """
-        replacements = {x: '' for x in ProjectCommon.read_czech_stopwords(CZECH_STOPWORDS_FILE_PATH)}
+        replacements = {x: '' for x in
+                        ProjectCommon.read_czech_stopwords(CZECH_STOPWORDS_FILE_PATH)}
         output = [w for w in text.split(' ') if w not in replacements]
 
         return ' '.join(output)
-
 
     @staticmethod
     def remove_html(raw_text) -> str:
@@ -56,7 +59,6 @@ class ProjectCommon:
 
         return clean_text
 
-
     @staticmethod
     def remove_non_alpha_chars(text) -> str:
         """
@@ -65,7 +67,7 @@ class ProjectCommon:
         :return:
         """
         replacements = {'"': '', '.': '', '(': '', ')': '', ',': '',
-                        '-': '', '?': '', '!': '', ':': '', '/': '', '„': '' ,
+                        '-': '', '?': '', '!': '', ':': '', '/': '', '„': '',
                         '  ': ' ', '   ': ' ', '%': '', '“': '', '*': '', '+': ''}
 
         for i, j in replacements.items():
@@ -73,12 +75,11 @@ class ProjectCommon:
 
         return text
 
-
     @staticmethod
     def remove_diacritics(text) -> str:
         """
         function for replacing all occurrences of Czech diacritics in the input string
-        :param text_output:
+        :param text:
         :return:
         """
         replacements = {'ě': 'e', 'š': 's', 'č': 'c', 'ř': 'r', 'ž': 'z', 'ý':'y',
@@ -88,7 +89,6 @@ class ProjectCommon:
             text = text.replace(i, j)
 
         return text
-
 
     @staticmethod
     def trimmer(text) -> str:
@@ -101,9 +101,8 @@ class ProjectCommon:
 
         return text_output_trimmed
 
-
     @staticmethod
-    def remove_non_alpha_chars_and_html(text) ->str:
+    def remove_non_alpha_chars_and_html(text) -> str:
         """
         function for removals of all non alpha chars and html in the input string
         :param text:
@@ -117,7 +116,6 @@ class ProjectCommon:
             ProjectCommon.remove_non_alpha_chars(text_output_no_html)
 
         return text_output_no_html_no_non_alpha_chars
-
 
     @staticmethod
     def remove_all(text) -> str:
@@ -136,12 +134,16 @@ class ProjectCommon:
             czech_stemmer.stemmer(text_output_no_html_no_non_alpha_chars_no_stopwords)
 
         text_output_no_html_no_non_alpha_chars_no_stopwords_stemmed_no_diacritics = \
-            ProjectCommon.remove_diacritics(text_output_no_html_no_non_alpha_chars_no_stopwords_stemmed)
+            ProjectCommon.\
+                remove_diacritics(text_output_no_html_no_non_alpha_chars_no_stopwords_stemmed)
 
         return text_output_no_html_no_non_alpha_chars_no_stopwords_stemmed_no_diacritics
 
 
 class Webapp:
+    """
+    web application helpers class
+    """
     @staticmethod
     def input_string_preparator(input_string) -> list:
         """
@@ -149,7 +151,7 @@ class Webapp:
         :param input_string:
         :return:
         """
-        input_text_list_raw = re.split(';|,|[ ]|-|[?]|[!]|\n',input_string)
+        input_text_list_raw = re.split(';|,|[ ]|-|[?]|[!]|\n', input_string)
         input_text_list = [ProjectCommon.remove_all(x) for x in input_text_list_raw if x != '']
 
         return input_text_list
@@ -174,7 +176,7 @@ class Webapp:
         sentiment_values = ['negative', 'positive', 'uncertain']
 
         # let's add 0 to each row from the cartesian product dataset for sum
-        for item in [x for x in product(sentiment_values, dates)]:
+        for item in product(sentiment_values, dates):
             cart_prod_sentiment.append((item[1], item[0], 0))
 
         # let's add 1 to each row from the query fetched results for sum
@@ -188,8 +190,8 @@ class Webapp:
         _data_set_for_grouping = sorted(_input_data_set, key=lambda x: (x[1]))
 
         # let's do the grouping of this dataset and sum the 1's and 0's
-        for k, g in groupby(_data_set_for_grouping, lambda x: x[1]):
-            _grouped_item = sum(r[2] for r in g), k
+        for key, group in groupby(_data_set_for_grouping, lambda x: x[1]):
+            _grouped_item = sum(r[2] for r in group), key
             pie_chart_by_sentiment_output.append(_grouped_item)
 
         all_charts_output['pie_by_sentiment']['group_keys'] = sorted(sentiment_values)
@@ -200,12 +202,12 @@ class Webapp:
         _data_set_for_grouping = sorted(_input_data_set, key=lambda x: (x[0], x[1]))
 
         # let's do the grouping of this dataset and sum the 1's and 0's
-        for k, g in groupby(_data_set_for_grouping, lambda x: (x[0], x[1])):
-            _grouped_item = sum(r[2] for r in g), k[0], k[1]
+        for key, group in groupby(_data_set_for_grouping, lambda x: (x[0], x[1])):
+            _grouped_item = sum(r[2] for r in group), key[0], key[1]
             time_series_output.append(_grouped_item)
 
-        all_charts_output['time_series']['group_keys']=sorted(dates)
-        all_charts_output['time_series']['output_data_set']=time_series_output
+        all_charts_output['time_series']['group_keys'] = sorted(dates)
+        all_charts_output['time_series']['output_data_set'] = time_series_output
 
         return all_charts_output
 
@@ -215,5 +217,5 @@ class Webapp:
         function for reading markdown file
         :return:
         """
-        with open(MARKDOWN_FILE_PATH, "r") as f:
-            return f.read()
+        with open(MARKDOWN_FILE_PATH, "r") as markdown_file_handler:
+            return markdown_file_handler.read()

@@ -1,3 +1,6 @@
+"""
+init module
+"""
 import os
 
 if os.environ.get('DATABASE_URL'):
