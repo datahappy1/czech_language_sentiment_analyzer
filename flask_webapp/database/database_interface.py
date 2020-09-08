@@ -1,22 +1,58 @@
 """
 database interface module
 """
-import os
-import urllib.parse as urlparse
 from flask_webapp.database import conn_local_sqlite, conn_remote_postgres
 
 
-class QueryCommon:
+def _connect_from_environment(environment):
     """
-    query common class
+    _connect_from_environment mapping function
+    :param environment:
+    :return:
     """
-    # drop the stats table
-    DB_DROP_TABLE = """
-    DROP TABLE IF EXISTS stats; """
+    try:
+        _mapping = {
+            "local": {
+                "conn": conn_local_sqlite.Connect,
+            },
+            "remote": {
+                "conn": conn_remote_postgres.Connect,
+            }
+        }
+        return _mapping[environment]
+    except KeyError:
+        raise Exception("Invalid environment value, valid values are remote | local")
 
-    # select count(*) query
-    DB_SELECT_COUNT_ROWS_QUERY = """
-    SELECT count(*) FROM stats;"""
+
+def _get_query_from_environment(environment, query_name):
+    """
+    _get_query from environment mapping function
+    :param environment:
+    :param query_name:
+    :return:
+    """
+    try:
+        _mapping = {
+            "local": {
+                "drop_table": QueryCommon.DB_DROP_TABLE,
+                "select_count_rows_query": QueryCommon.DB_SELECT_COUNT_ROWS_QUERY,
+                "create_table": QueryLocal.DB_CREATE_TABLE,
+                "insert_stats_query": QueryLocal.DB_INSERT_STATS_QUERY,
+                "check_table_exists": QueryLocal.DB_CHECK_TABLE_EXISTS,
+                "select_stats_query_all": QueryLocal.DB_SELECT_RAW_STATS_DATA,
+            },
+            "remote": {
+                "drop_table": QueryCommon.DB_DROP_TABLE,
+                "select_count_rows_query": QueryCommon.DB_SELECT_COUNT_ROWS_QUERY,
+                "create_table": QueryRemote.DB_CREATE_TABLE,
+                "insert_stats_query": QueryRemote.DB_INSERT_STATS_QUERY,
+                "check_table_exists": QueryRemote.DB_CHECK_TABLE_EXISTS,
+                "select_stats_query_all": QueryRemote.DB_SELECT_RAW_STATS_DATA
+            }
+        }
+        return _mapping[environment][query_name]
+    except KeyError:
+        raise Exception("Invalid environment value, valid values are remote | local")
 
 
 class QueryRemote:
@@ -73,48 +109,53 @@ class QueryLocal:
     WHERE request_datetime >= ?; """
 
 
+class QueryCommon:
+    """
+    query common class
+    """
+    # drop the stats table
+    DB_DROP_TABLE = """
+    DROP TABLE IF EXISTS stats; """
+
+    # select count(*) query
+    DB_SELECT_COUNT_ROWS_QUERY = """
+    SELECT count(*) FROM stats;"""
+
+
 class Database:
     """
     main database interaction class
     """
+
     def __init__(self, env):
         self.environment = env
-        self.db_drop_table = QueryCommon.DB_DROP_TABLE
-        self.db_select_count_rows_query = QueryCommon.DB_SELECT_COUNT_ROWS_QUERY
 
-        if self.environment == "remote":
-            self.db_create_table = QueryRemote.DB_CREATE_TABLE
-            self.db_insert_stats_query = QueryRemote.DB_INSERT_STATS_QUERY
-            self.db_check_table_exists = QueryRemote.DB_CHECK_TABLE_EXISTS
-            self.db_select_stats_query_all = QueryRemote.DB_SELECT_RAW_STATS_DATA
+        self.db_drop_table = \
+            _get_query_from_environment(self.environment, query_name="drop_table")
 
-        elif self.environment == "local":
-            self.db_create_table = QueryLocal.DB_CREATE_TABLE
-            self.db_insert_stats_query = QueryLocal.DB_INSERT_STATS_QUERY
-            self.db_check_table_exists = QueryLocal.DB_CHECK_TABLE_EXISTS
-            self.db_select_stats_query_all = QueryLocal.DB_SELECT_RAW_STATS_DATA
+        self.db_select_count_rows_query = \
+            _get_query_from_environment(self.environment, query_name="select_count_rows_query")
 
-        else:
-            raise NotImplementedError
+        self.db_create_table = \
+            _get_query_from_environment(self.environment, query_name="create_table")
+
+        self.db_insert_stats_query = \
+            _get_query_from_environment(self.environment, query_name="insert_stats_query")
+
+        self.db_check_table_exists = \
+            _get_query_from_environment(self.environment, query_name="check_table_exists")
+
+        self.db_select_stats_query_all = \
+            _get_query_from_environment(self.environment, query_name="select_stats_query_all")
 
     def connect(self):
         """
         connect to database method
         :return:
         """
-        if self.environment == "remote":
-            db_url = os.environ.get('DATABASE_URL')
-            db_url_parsed = urlparse.urlparse(db_url)
-            conn = conn_remote_postgres.create_connection(db_url_parsed)
-
-        elif self.environment == "local":
-            db_file_loc = os.path.abspath(os.path.join(os.path.dirname(__file__), 'stats.db'))
-            conn = conn_local_sqlite.create_connection(db_file_loc)
-
-        else:
-            raise NotImplementedError
-
-        return conn
+        _mapped_conn_obj = _connect_from_environment(self.environment)["conn"]
+        conn = _mapped_conn_obj()
+        return conn.connect()
 
     def db_builder(self):
         """

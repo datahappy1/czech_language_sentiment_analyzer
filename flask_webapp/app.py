@@ -47,7 +47,7 @@ APP.config['acceptable_detected_language_codes'] = ['cs', 'sk', 'sl', 'hr']
 # if __env__ is local ( env. variable DATABASE_URL not set ) -> Sqlite3
 # if __env__ is remote ( env. variable DATABASE_URL configured for Heroku Postgres) -> Postgres
 DB_OBJ = Database(__env__)
-Database.db_builder(DB_OBJ)
+DB_OBJ.db_builder()
 
 
 def get_db():
