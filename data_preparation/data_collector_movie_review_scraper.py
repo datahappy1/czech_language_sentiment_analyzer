@@ -21,6 +21,7 @@ class Anonymize:
     """
     anonymize class
     """
+
     def __init__(self):
         self.headers = [{'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5)'
                                        ' AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -44,7 +45,7 @@ class Anonymize:
         call sleeper and randomize request headers function used for each request
         :return:
         """
-        return self.headers[randint(0, len(self.headers)-1)]
+        return self.headers[randint(0, len(self.headers) - 1)]
 
 
 def movie_review_url_collector():
@@ -55,11 +56,13 @@ def movie_review_url_collector():
     start_page_urls = ['https://www.csfd.cz/zebricky/nejhorsi-filmy/?show=complete',
                        'https://www.csfd.cz/zebricky/nejlepsi-filmy/?show=complete']
 
-    obj = Anonymize()
+    anonymize = Anonymize()
+
     for start_page in start_page_urls:
-        page = requests.get(start_page, headers=Anonymize.randomize_request_headers(obj))
+        page = requests.get(start_page, headers=anonymize.randomize_request_headers())
         soup = BeautifulSoup(page.content, 'html.parser')
         movie_review_url = soup.find_all('td', attrs={'class': 'film'})
+
         for url_item in movie_review_url[:300]:
             children = url_item.findChildren("a", recursive=False)
             movie_name = str(children).split("/")[2]
@@ -67,6 +70,7 @@ def movie_review_url_collector():
                 review_page = str(random_index)
                 MOVIE_REVIEW_URLS.append('https://www.csfd.cz/film/{}/komentare/strana-{}'.
                                          format(movie_name, review_page))
+
     return 0
 
 
@@ -77,12 +81,12 @@ def movie_review_scraper(url_to_scrape):
     :param url_to_scrape: url
     :return:None
     """
-    obj = Anonymize()
+    anonymize = Anonymize()
 
     print(f'{datetime.datetime.now()} started scraping {url_to_scrape}')
     try:
-        Anonymize.sleeper()
-        page = requests.get(url, headers=Anonymize.randomize_request_headers(obj))
+        anonymize.sleeper()
+        page = requests.get(url, headers=anonymize.randomize_request_headers())
         if page.status_code == 200:
 
             # the <li> html tag structure we're scraping in loops:
@@ -112,9 +116,11 @@ def movie_review_scraper(url_to_scrape):
             #   </li>
 
             soup = BeautifulSoup(page.content, 'html.parser')
-            _l_substring_to_trim_to = '<p class="post">'
-            _r_substring_to_trim_from = '<span class="date desc">'
-            for soup_item in soup.find_all("li", {"id" : re.compile(r"comment-*")}):
+
+            _l_substring_to_trim_from = '<p class="post">'
+            _r_substring_to_trim_to = '<span class="date desc">'
+
+            for soup_item in soup.find_all("li", {"id": re.compile(r"comment-*")}):
                 scraper_temp_output = []
                 img = soup_item.findChildren("img",
                                              attrs={'class': 'rating'})
@@ -122,14 +128,15 @@ def movie_review_scraper(url_to_scrape):
                                                 attrs={'class': ['rating', 'post']})
 
                 if strong and str(strong).startswith('[<strong class="rating">odpad!</strong>'):
-                    _r_trim = len(str(strong)) - str(strong).rfind(_r_substring_to_trim_from)
-                    _l_trim = str(strong).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
+                    _r_trim = len(str(strong)) - str(strong).rfind(_r_substring_to_trim_to)
+                    _l_trim = str(strong).rfind(_l_substring_to_trim_from) + len(_l_substring_to_trim_from)
                     scraper_temp_output.append({'rank': -2,
                                                 'review': str(strong)[_l_trim:-_r_trim]})
 
                 else:
-                    _r_trim = len(str(img)) - str(img).rfind(_r_substring_to_trim_from)
-                    _l_trim = str(img).rfind(_l_substring_to_trim_to) + len(_l_substring_to_trim_to)
+                    _r_trim = len(str(img)) - str(img).rfind(_r_substring_to_trim_to)
+                    _l_trim = str(img).rfind(_l_substring_to_trim_from) + len(_l_substring_to_trim_from)
+
                     if img and str(img).startswith('[<img alt="*"'):
                         scraper_temp_output.append({'rank': -2,
                                                     'review': str(img)[_l_trim:-_r_trim]})
@@ -146,10 +153,10 @@ def movie_review_scraper(url_to_scrape):
                         scraper_temp_output.append({'rank': 2,
                                                     'review': str(img)[_l_trim:-_r_trim]})
 
-                for sto in scraper_temp_output:
-                    i_review = sto.get('review')
-                    review = ProjectCommon.remove_html(str(i_review).lower())
-                    rank = sto.get('rank')
+                for item in scraper_temp_output:
+                    raw_review = item.get('review')
+                    review = ProjectCommon.remove_html(str(raw_review).lower())
+                    rank = item.get('rank')
                     SCRAPER_FINAL_OUTPUT.append((review, rank))
 
             print(f'{datetime.datetime.now()} finished scraping {url}')
@@ -161,6 +168,7 @@ def movie_review_scraper(url_to_scrape):
         print(str(connerr))
     except Exception as exc:
         print(str(exc))
+
 
 if __name__ == "__main__":
     # fill the list with urls used for movie data scraping
