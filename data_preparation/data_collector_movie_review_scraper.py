@@ -35,14 +35,14 @@ class Anonymize:
     @staticmethod
     def sleeper():
         """
-        basic sleeper function used to sleep between requests
+        sleeper method used to sleep between requests
         :return:
         """
         sleep(randint(2, 5))
 
     def randomize_request_headers(self):
         """
-        call sleeper and randomize request headers function used for each request
+        method to randomize request headers function used for each request
         :return:
         """
         return self.headers[randint(0, len(self.headers) - 1)]
