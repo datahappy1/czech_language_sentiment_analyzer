@@ -42,7 +42,7 @@ class Anonymize:
 
     def randomize_request_headers(self):
         """
-        method to randomize request headers function used for each request
+        method to randomize request headers for each request
         :return:
         """
         return self.headers[randint(0, len(self.headers) - 1)]
