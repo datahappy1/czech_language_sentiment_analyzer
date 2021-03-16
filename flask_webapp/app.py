@@ -75,11 +75,11 @@ def write_stats_to_table(sentiment_result):
     get_db().commit()
 
 
-def process(input_text):
+def process_input_text(input_text):
     """
     process input text function
     :param input_text:
-    :return:
+    :return: sentiment result
     """
     def _validate_input_text(input):
         if not input:
@@ -92,11 +92,11 @@ def process(input_text):
     def _create_input_text_lowered_list(input):
         return Webapp.input_string_preparator(input.lower())
 
-    def _is_invalid_non_stop_word_count(input_text_lowered_list):
+    def _validate_stop_word_count(input_text_lowered_list):
         if len([i for i in input_text_lowered_list if i != '']) < 3:
             raise NotEnoughNonStopWordsException
 
-    def _is_invalid_word_length_count(input_text_lowered_list):
+    def _validate_word_length_count(input_text_lowered_list):
         if all([len(i) < 3 for i in input_text_lowered_list]):
             raise NotEnoughWordsLengthException
 
@@ -105,8 +105,8 @@ def process(input_text):
 
     _validate_input_text(input_text)
     _input_text_lowered_list = _create_input_text_lowered_list(input_text)
-    _is_invalid_non_stop_word_count(_input_text_lowered_list)
-    _is_invalid_word_length_count(_input_text_lowered_list)
+    _validate_stop_word_count(_input_text_lowered_list)
+    _validate_word_length_count(_input_text_lowered_list)
     _validate_detected_language(detect(input_text))
     return _get_sentiment_result(_input_text_lowered_list)
 
@@ -199,7 +199,7 @@ def main():
         input_text = request.form.get('Input_Text')
 
         try:
-            sentiment_result = process(input_text)
+            sentiment_result = process_input_text(input_text)
 
         except NotEnoughNonStopWordsException:
             return render_template('index.html',
@@ -242,7 +242,7 @@ def api():
         input_text = request.form.get('Input_Text')
 
         try:
-            sentiment_result = process(input_text)
+            sentiment_result = process_input_text(input_text)
 
         except NotEnoughNonStopWordsException:
             response = jsonify({
