@@ -8,6 +8,8 @@ from flaskext.markdown import Markdown
 from flask_caching import Cache
 from waitress import serve
 from langdetect import detect
+from flask_webapp.exceptions import NotEnoughNonStopWordsException, NotEnoughWordsLengthException, \
+    InvalidDetectedLanguageException, EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP
 from flask_webapp.database import __env__
 from flask_webapp.database.database_interface import Database
 from utils.utilities import Webapp
@@ -61,7 +63,7 @@ def get_db():
     return database
 
 
-def _stats_to_table_writer(sentiment_result):
+def write_stats_to_table(sentiment_result):
     """
     function storing stats data in a table
     :param sentiment_result:
@@ -71,6 +73,42 @@ def _stats_to_table_writer(sentiment_result):
     data_tuple = (datetime.now(), sentiment_result)
     cur.execute(DB_OBJ.db_insert_stats_query, data_tuple)
     get_db().commit()
+
+
+def process(input_text):
+    """
+    process input text function
+    :param input_text:
+    :return:
+    """
+    def _validate_input_text(input):
+        if not input:
+            raise NotEnoughNonStopWordsException
+
+    def _validate_detected_language(detected_language):
+        if detected_language not in APP.config['acceptable_detected_language_codes']:
+            raise InvalidDetectedLanguageException
+
+    def _create_input_text_lowered_list(input):
+        return Webapp.input_string_preparator(input.lower())
+
+    def _is_invalid_non_stop_word_count(input_text_lowered_list):
+        if len([i for i in input_text_lowered_list if i != '']) < 3:
+            raise NotEnoughNonStopWordsException
+
+    def _is_invalid_word_length_count(input_text_lowered_list):
+        if all([len(i) < 3 for i in input_text_lowered_list]):
+            raise NotEnoughWordsLengthException
+
+    def _get_sentiment_result(input_text_lowered_list):
+        return webapp_interface.ml_model_evaluator([' '.join(input_text_lowered_list)])
+
+    _validate_input_text(input_text)
+    _input_text_lowered_list = _create_input_text_lowered_list(input_text)
+    _is_invalid_non_stop_word_count(_input_text_lowered_list)
+    _is_invalid_word_length_count(_input_text_lowered_list)
+    _validate_detected_language(detect(input_text))
+    return _get_sentiment_result(_input_text_lowered_list)
 
 
 @APP.teardown_appcontext
@@ -160,41 +198,33 @@ def main():
     if request.method == 'POST':
         input_text = request.form.get('Input_Text')
 
-        if not input_text:
+        try:
+            sentiment_result = process(input_text)
+
+        except NotEnoughNonStopWordsException:
             return render_template('index.html',
                                    template_input_string=input_text,
-                                   template_error_message="Sorry, need to submit "
-                                                          "at least 3 non stop-words")
+                                   template_error_message=
+                                   EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP["NotEnoughNonStopWordsException"])
 
-        input_text_lowered = input_text.lower()
-        input_text_lowered_list = Webapp.input_string_preparator(input_text_lowered)
-
-        if len([i for i in input_text_lowered_list if i != '']) < 3:
+        except NotEnoughWordsLengthException:
             return render_template('index.html',
                                    template_input_string=input_text,
-                                   template_error_message="Sorry, need to submit "
-                                                          "at least 3 non stop-words")
+                                   template_error_message=
+                                   EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP["NotEnoughWordsLengthException"])
 
-        if all([len(i) < 3 for i in input_text_lowered_list]):
+        except InvalidDetectedLanguageException:
             return render_template('index.html',
                                    template_input_string=input_text,
-                                   template_error_message="Sorry, need to submit at "
-                                                          "least 1 word with 3 and more "
-                                                          "characters")
-
-        detected_lang = detect(input_text)
-
-        if detected_lang not in APP.config['acceptable_detected_language_codes']:
+                                   template_error_message=
+                                   EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP["InvalidDetectedLanguageException"])
+        except Exception as exc:
             return render_template('index.html',
                                    template_input_string=input_text,
-                                   template_error_message="Sorry, need to submit "
-                                                          "text written in Czech")
+                                   template_error_message=exc)
 
-        input_text_for_eval = ' '.join(input_text_lowered_list)
-        sentiment_result = webapp_interface.ml_model_evaluator([input_text_for_eval])
-
-        _stats_to_table_writer(sentiment_result=
-                               sentiment_result.get('overall_sentiment').get('sentiment'))
+        write_stats_to_table(sentiment_result=
+                             sentiment_result.get('overall_sentiment').get('sentiment'))
 
         return render_template('index.html',
                                template_input_string=input_text,
@@ -210,54 +240,48 @@ def api():
     """
     if request.method == 'POST':
         input_text = request.form.get('Input_Text')
-        if not input_text:
+
+        try:
+            sentiment_result = process(input_text)
+
+        except NotEnoughNonStopWordsException:
             response = jsonify({
                 'status': 400,
-                'error': 'Sorry, need to submit at least 3 non stop-words',
+                'error': EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP["NotEnoughNonStopWordsException"],
                 'mimetype': 'application/json'
             })
             response.status_code = 400
             return response
 
-        input_text_lowered = input_text.lower()
-        input_text_lowered_list = Webapp.input_string_preparator(input_text_lowered)
-
-        if len([i for i in input_text_lowered_list if i != '']) < 3:
+        except NotEnoughWordsLengthException:
             response = jsonify({
                 'status': 400,
-                'error': 'Sorry, need to submit '
-                         'at least 3 non stop-words',
+                'error': EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP["NotEnoughWordsLengthException"],
                 'mimetype': 'application/json'
             })
             response.status_code = 400
             return response
 
-        if all([len(i) < 3 for i in input_text_lowered_list]):
+        except InvalidDetectedLanguageException:
             response = jsonify({
                 'status': 400,
-                'error': 'Sorry, need to submit '
-                         'at least 1 word with 3 and more characters',
+                'error': EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP["InvalidDetectedLanguageException"],
                 'mimetype': 'application/json'
             })
             response.status_code = 400
             return response
 
-        detected_lang = detect(input_text)
-        if detected_lang not in APP.config['acceptable_detected_language_codes']:
+        except Exception as exc:
             response = jsonify({
                 'status': 400,
-                'error': 'Sorry, need to submit '
-                         'text written in Czech',
+                'error': str(exc),
                 'mimetype': 'application/json'
             })
             response.status_code = 400
             return response
 
-        input_text_list_for_eval = ' '.join(input_text_lowered_list)
-        sentiment_result = webapp_interface.ml_model_evaluator([input_text_list_for_eval])
-
-        _stats_to_table_writer(sentiment_result=
-                               sentiment_result.get('overall_sentiment').get('sentiment'))
+        write_stats_to_table(sentiment_result=
+                             sentiment_result.get('overall_sentiment').get('sentiment'))
 
         response = jsonify({
             'status': 200,
