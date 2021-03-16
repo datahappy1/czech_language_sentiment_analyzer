@@ -21,8 +21,8 @@ def create_app():
     create app factory
     :return:
     """
-    _app = Flask(__name__)
-    return _app
+    app = Flask(__name__)
+    return app
 
 
 APP = create_app()
@@ -85,10 +85,6 @@ def process_input_text(input_text):
         if not input:
             raise NotEnoughNonStopWordsException
 
-    def _validate_detected_language(detected_language):
-        if detected_language not in APP.config['acceptable_detected_language_codes']:
-            raise InvalidDetectedLanguageException
-
     def _create_input_text_lowered_list(input):
         return Webapp.input_string_preparator(input.lower())
 
@@ -99,6 +95,10 @@ def process_input_text(input_text):
     def _validate_word_length_count(input_text_lowered_list):
         if all([len(i) < 3 for i in input_text_lowered_list]):
             raise NotEnoughWordsLengthException
+
+    def _validate_detected_language(detected_language):
+        if detected_language not in APP.config['acceptable_detected_language_codes']:
+            raise InvalidDetectedLanguageException
 
     def _get_sentiment_result(input_text_lowered_list):
         return webapp_interface.ml_model_evaluator([' '.join(input_text_lowered_list)])
