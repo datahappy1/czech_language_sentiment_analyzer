@@ -75,40 +75,121 @@ def write_stats_to_table(sentiment_result):
     get_db().commit()
 
 
-def process(input_text):
+def process_input_text(input_text):
     """
     process input text function
     :param input_text:
     :return:
     """
-    def _validate_input_text(input):
-        if not input:
+
+    def _validate_input_text(_input_text):
+        if not _input_text:
             raise NotEnoughNonStopWordsException
 
     def _validate_detected_language(detected_language):
         if detected_language not in APP.config['acceptable_detected_language_codes']:
             raise InvalidDetectedLanguageException
 
-    def _create_input_text_lowered_list(input):
-        return Webapp.input_string_preparator(input.lower())
+    def _create_input_text_lowered_list(_input_text):
+        return Webapp.input_string_preparator(_input_text.lower())
 
-    def _is_invalid_non_stop_word_count(input_text_lowered_list):
-        if len([i for i in input_text_lowered_list if i != '']) < 3:
+    def _is_invalid_non_stop_word_count(_input_text_lowered_list):
+        if len([i for i in _input_text_lowered_list if i != '']) < 3:
             raise NotEnoughNonStopWordsException
 
-    def _is_invalid_word_length_count(input_text_lowered_list):
-        if all([len(i) < 3 for i in input_text_lowered_list]):
+    def _is_invalid_word_length_count(_input_text_lowered_list):
+        if all([len(i) < 3 for i in _input_text_lowered_list]):
             raise NotEnoughWordsLengthException
 
-    def _get_sentiment_result(input_text_lowered_list):
-        return webapp_interface.ml_model_evaluator([' '.join(input_text_lowered_list)])
+    def _get_sentiment_result(_input_text_lowered_list):
+        return webapp_interface.ml_model_evaluator([' '.join(_input_text_lowered_list)])
 
     _validate_input_text(input_text)
-    _input_text_lowered_list = _create_input_text_lowered_list(input_text)
-    _is_invalid_non_stop_word_count(_input_text_lowered_list)
-    _is_invalid_word_length_count(_input_text_lowered_list)
+    input_text_lowered_list = _create_input_text_lowered_list(input_text)
+    _is_invalid_non_stop_word_count(input_text_lowered_list)
+    _is_invalid_word_length_count(input_text_lowered_list)
     _validate_detected_language(detect(input_text))
-    return _get_sentiment_result(_input_text_lowered_list)
+    return _get_sentiment_result(input_text_lowered_list)
+
+
+def post_request_exception_handler(handler_type, input_text, exception_type):
+    """
+    post request exception handler
+    :param handler_type:
+    :param input_text:
+    :param exception_type:
+    :return:
+    """
+    if handler_type == "main":
+        return render_template('index.html',
+                               template_input_string=input_text,
+                               template_error_message=
+                               EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP[exception_type])
+    if handler_type == "api":
+        response = jsonify({
+            'status': 400,
+            'error': EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP[exception_type],
+            'mimetype': 'application/json'
+        })
+        response.status_code = 400
+        return response
+
+
+def post_request_success_handler(handler_type, input_text, sentiment_result):
+    """
+    post request success handler
+    :param handler_type:
+    :param input_text:
+    :param sentiment_result:
+    :return:
+    """
+    if handler_type == "main":
+        return render_template('index.html',
+                               template_input_string=input_text,
+                               template_sentiment_result=sentiment_result)
+    if handler_type == "api":
+        response = jsonify({
+            'status': 200,
+            'sentiment_result': sentiment_result,
+            'mimetype': 'application/json'
+        })
+        response.status_code = 200
+        return response
+
+
+def post_request_sentiment_analyzer_handler(handler_type, input_text):
+    """
+    sentiment analyzer handler
+    :param handler_type:
+    :param input_text:
+    :return:
+    """
+    try:
+        sentiment_result = process_input_text(input_text)
+
+    except NotEnoughNonStopWordsException:
+        return post_request_exception_handler(
+            handler_type, input_text, "NotEnoughNonStopWordsException"
+        )
+
+    except NotEnoughWordsLengthException:
+        return post_request_exception_handler(
+            handler_type, input_text, "NotEnoughWordsLengthException"
+        )
+
+    except InvalidDetectedLanguageException:
+        return post_request_exception_handler(
+            handler_type, input_text, "InvalidDetectedLanguageException"
+        )
+
+    except Exception:
+        return post_request_exception_handler(handler_type, input_text, "GenericException")
+
+    write_stats_to_table(
+        sentiment_result=sentiment_result.get('overall_sentiment').get('sentiment')
+    )
+
+    return post_request_success_handler(handler_type, input_text, sentiment_result)
 
 
 @APP.teardown_appcontext
@@ -196,39 +277,9 @@ def main():
         return render_template('index.html')
 
     if request.method == 'POST':
-        input_text = request.form.get('Input_Text')
-
-        try:
-            sentiment_result = process(input_text)
-
-        except NotEnoughNonStopWordsException:
-            return render_template('index.html',
-                                   template_input_string=input_text,
-                                   template_error_message=
-                                   EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP["NotEnoughNonStopWordsException"])
-
-        except NotEnoughWordsLengthException:
-            return render_template('index.html',
-                                   template_input_string=input_text,
-                                   template_error_message=
-                                   EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP["NotEnoughWordsLengthException"])
-
-        except InvalidDetectedLanguageException:
-            return render_template('index.html',
-                                   template_input_string=input_text,
-                                   template_error_message=
-                                   EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP["InvalidDetectedLanguageException"])
-        except Exception as exc:
-            return render_template('index.html',
-                                   template_input_string=input_text,
-                                   template_error_message=exc)
-
-        write_stats_to_table(sentiment_result=
-                             sentiment_result.get('overall_sentiment').get('sentiment'))
-
-        return render_template('index.html',
-                               template_input_string=input_text,
-                               template_sentiment_result=sentiment_result)
+        return post_request_sentiment_analyzer_handler(
+            handler_type='main', input_text=request.form.get('Input_Text')
+        )
 
 
 @APP.route(APP.config["api_prefix"], methods=['POST'])
@@ -239,57 +290,9 @@ def api():
     :return:
     """
     if request.method == 'POST':
-        input_text = request.form.get('Input_Text')
-
-        try:
-            sentiment_result = process(input_text)
-
-        except NotEnoughNonStopWordsException:
-            response = jsonify({
-                'status': 400,
-                'error': EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP["NotEnoughNonStopWordsException"],
-                'mimetype': 'application/json'
-            })
-            response.status_code = 400
-            return response
-
-        except NotEnoughWordsLengthException:
-            response = jsonify({
-                'status': 400,
-                'error': EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP["NotEnoughWordsLengthException"],
-                'mimetype': 'application/json'
-            })
-            response.status_code = 400
-            return response
-
-        except InvalidDetectedLanguageException:
-            response = jsonify({
-                'status': 400,
-                'error': EXCEPTION_TYPE_RESPONSE_MESSAGE_MAP["InvalidDetectedLanguageException"],
-                'mimetype': 'application/json'
-            })
-            response.status_code = 400
-            return response
-
-        except Exception as exc:
-            response = jsonify({
-                'status': 400,
-                'error': str(exc),
-                'mimetype': 'application/json'
-            })
-            response.status_code = 400
-            return response
-
-        write_stats_to_table(sentiment_result=
-                             sentiment_result.get('overall_sentiment').get('sentiment'))
-
-        response = jsonify({
-            'status': 200,
-            'sentiment_result': sentiment_result,
-            'mimetype': 'application/json'
-        })
-        response.status_code = 200
-        return response
+        return post_request_sentiment_analyzer_handler(
+            handler_type='api', input_text=request.form.get('Input_Text')
+        )
 
 
 @APP.route('/api_docs', methods=['GET'])
