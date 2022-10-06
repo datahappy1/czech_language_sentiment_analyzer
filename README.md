@@ -43,6 +43,7 @@ If you provide this app with a environment variable named `DATABASE_URL` contain
     <li><del>Add Czech word stemmatizer module</del> 	&#10003;</li>
     <li>Ensembling instead of weighted model precision average for overall sentiment</li>
     <li>Redis could replace Sqlite3 / Postgres</li>
+    <li>Migrate from Heroku to AWS</li>
 </ul>
 
 ##### Useful links
